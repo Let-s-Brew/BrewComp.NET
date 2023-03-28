@@ -5,11 +5,13 @@ namespace BrewComp.Data;
 public class Competition
 {
     public Guid Id { get; init; }
-    public string Name { get; set; }
-    public DateInterval CompetitionDates { get; set; }
-    public DateInterval DropOffDates { get; set; }
-    public DateInterval ShippingDates { get; set; }
-    public DateInterval RegistrationDates { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public Interval CompetitionDates { get; set; }
+    public Interval DropOffDates { get; set; }
+    public Interval ShippingDates { get; set; }
+    public Interval RegistrationDates { get; set; }
+    public Interval EntryRegistrationDates { get; set; }
+
 
 }
 
