@@ -4,11 +4,11 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>aspnet-BrewComp.NET-233684ac-c49a-4a7f-8be0-699517e4c9c1</UserSecretsId>
     <RootNamespace>BrewComp</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AddressTools" Version="1.0.0" />
     <PackageReference Include="Jot" Version="2.1.13" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.15" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.15" />
