@@ -10,4 +10,5 @@ public class UserIdentity : IdentityUser
     public string LastName { get; set; }
     public CivicAddress Address { get; set; }
     public IEnumerable<Competition> Competitions { get; set; }
+    public HomebrewClub? Club { get; set; }
 }
