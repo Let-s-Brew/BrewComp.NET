@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BrewComp { 
     public class Program
     {
-        public static void Main(string[] args)
+        public static async void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +22,7 @@ namespace BrewComp {
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
             builder.Services.AddDefaultIdentity<UserIdentity>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddRoles<IdentityRole>();
+                .AddRoles<IdentityRole>().AddRoleManager<RoleManager<IdentityRole>>();
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
             builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<UserIdentity>>();
@@ -49,6 +49,18 @@ namespace BrewComp {
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            //Default Roles
+            var _roleManager = app.Services.GetRequiredService<RoleManager<IdentityRole>>();
+            string[] _defaultRoles = { "admin", "coordinator", "participant", "steward", "judge" };
+
+            foreach( var role in _defaultRoles )
+            {
+                if(!await _roleManager.RoleExistsAsync(role))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole(role));
+                }
+            }
 
             app.MapControllers();
             app.MapBlazorHub();
