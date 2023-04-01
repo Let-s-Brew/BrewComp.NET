@@ -1,4 +1,5 @@
-﻿using NodaTime;
+﻿using BrewComp.Identity;
+using NodaTime;
 
 namespace BrewComp.Data;
 
@@ -11,7 +12,9 @@ public class Competition
     public Interval ShippingDates { get; set; }
     public Interval RegistrationDates { get; set; }
     public Interval EntryRegistrationDates { get; set; }
-
+    public IEnumerable<UserIdentity> Entrants { get; set; } = new List<UserIdentity>();
+    public IEnumerable<string> CategoryIds { get; set; } = new List<string>();
+    public Dictionary<uint, CompetitionEntry> Entries { get; set; } = new Dictionary<uint, CompetitionEntry>();
 
 }
 

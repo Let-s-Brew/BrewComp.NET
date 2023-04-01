@@ -11,6 +11,7 @@ public class UserIdentity : IdentityUser
     public CivicAddress? Address { get; set; }
     public IEnumerable<Competition> Competitions { get; set; } = new List<Competition>();
     public HomebrewClub? Club { get; set; }
+    public IEnumerable<CompetitionEntry> Entries { get; set; } = new List<CompetitionEntry>();
 
     public UserIdentity(string firstName, string lastName, IEnumerable<Competition> competitions, CivicAddress? address = null, HomebrewClub? club = null)
     {
