@@ -1,10 +1,12 @@
 ﻿using BrewComp.Identity;
 using NodaTime;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BrewComp.Data;
 
 public class Competition
 {
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public Guid Id { get; init; }
     public string Name { get; set; } = string.Empty;
     public Interval CompetitionDates { get; set; }
