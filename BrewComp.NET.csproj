@@ -8,19 +8,29 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AddressTools" Version="1.0.0" />
+    <PackageReference Include="AspNet.Security.OAuth.Discord" Version="6.0.14" />
+    <PackageReference Include="BrewCode.AddressTools" Version="1.0.0" />
+    <PackageReference Include="BrewCode.BrewGuide" Version="1.0.0" />
     <PackageReference Include="Jot" Version="2.1.13" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.15" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.15" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.15" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.14" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.15">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.13" />
     <PackageReference Include="NodaTime" Version="3.1.6" />
-    <PackageReference Include="SimplerSoftware.EntityFrameworkCore.SqlServer.NodaTime" Version="6.0.1" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.8" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="6.0.8" />
+    <PackageReference Include="Npgsql.NodaTime" Version="6.0.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Areas\Configuration\Controllers\" />
+    <Folder Include="Areas\Configuration\Data\" />
+    <Folder Include="Areas\Configuration\Views\" />
+    <Folder Include="Migrations\" />
   </ItemGroup>
 
 </Project>
