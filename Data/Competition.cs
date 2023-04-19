@@ -1,4 +1,5 @@
-﻿using BrewComp.Identity;
+﻿using BrewCode.AddressTools.Models;
+using BrewComp.Identity;
 using NodaTime;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -14,9 +15,13 @@ public class Competition
     public Interval ShippingDates { get; set; }
     public Interval RegistrationDates { get; set; }
     public Interval EntryRegistrationDates { get; set; }
-    public IEnumerable<UserIdentity> Entrants { get; set; } = new List<UserIdentity>();
-    public IEnumerable<string> CategoryIds { get; set; } = new List<string>();
-    public Dictionary<uint, CompetitionEntry> Entries { get; set; } = new Dictionary<uint, CompetitionEntry>();
+    public List<BrewCompUser> Entrants { get; set; } = new List<BrewCompUser>();
+    public List<string> CategoryIds { get; set; } = new List<string>();
+    public List<CompetitionEntry> Entries { get; set; } = new List<CompetitionEntry>();
+    public List<CivicAddress> DropOffAddresses { get; set; } = new List<CivicAddress>();
+
+    // Store coordinators by ID for now, use separate RoleManger for each competition? Create dynamic policies for Coordinator Claims?
+    public List<string> CompetitionCoordinators { get; set; } = new List<string>(); 
 
 }
 

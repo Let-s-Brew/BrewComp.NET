@@ -15,8 +15,6 @@ public class Program
     internal static Tracker Tracker = new Tracker();
     public static async Task Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);
-
         //Use JOT to save/persist the DB info
         Tracker.Configure<ServerDBConfig>().Properties(
                 config => new {
@@ -28,27 +26,19 @@ public class Program
                     config.DBPass
                 }
             );
-        var config = new ServerDBConfig();
 
-        //DB Setup
-        var npgb = new NpgsqlConnectionStringBuilder();
-        npgb.Host = config.DBHost;
-        npgb.Port = config.DBPort;
-        npgb.Username = config.DBUser;
-        npgb.Password = config.DBPass;
-        npgb.Database = config.DBName;
-        builder.Services.AddDbContext<ApplicationDbContext>(opt =>      
-            opt.UseNpgsql(npgb.ConnectionString, o => o.UseNodaTime()));
+        var builder = WebApplication.CreateBuilder(args);
+
+        builder.Services.AddDbContext<BrewCompDbContext>();
         builder.Services.AddAuthentication();
         builder.Services.AddAuthorization();
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-        builder.Services.AddDefaultIdentity<UserIdentity>()
-            .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddRoles<IdentityRole>()
-            .AddRoleManager<RoleManager<IdentityRole>>();
+        builder.Services.AddIdentity<BrewCompUser, IdentityRole>()
+            .AddRoleManager<RoleManager<IdentityRole>>()
+            .AddEntityFrameworkStores<BrewCompDbContext>();
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
-        builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<UserIdentity>>();
+        builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<BrewCompUser>>();
 
         var app = builder.Build();
 
@@ -67,28 +57,37 @@ public class Program
         app.UseHttpsRedirection();
 
         app.UseStaticFiles();
-
-        app.UseRouting();
-
+        
         app.UseAuthentication();
         app.UseAuthorization();
 
-        //Default Roles
-        var _roleManager = app.Services.GetRequiredService<RoleManager<IdentityRole>>();
-        string[] _defaultRoles = { "admin", "coordinator", "participant", "steward", "judge" };
-
-        foreach( var role in _defaultRoles )
+        app.UseRouting();
+        app.UseEndpoints(endpoints =>
         {
-            if(!await _roleManager.RoleExistsAsync(role))
-            {
-                await _roleManager.CreateAsync(new IdentityRole(role));
-            }
-        }
+            endpoints.MapControllerRoute(
+              name: "areas",
+              pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
+            );
+        });
 
         app.MapControllers();
         app.MapBlazorHub();
         app.MapFallbackToPage("/_Host");
 
+        //Default Roles
+        using (var scope = app.Services.CreateScope())
+        {
+            var _roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            string[] _defaultRoles = { "siteadmin", "coordinator", "participant", "steward", "judge" };
+
+            foreach (var role in _defaultRoles)
+            {
+                if (!await _roleManager.RoleExistsAsync(role))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole(role));
+                }
+            }
+        }
         app.Run();
 
         // This thread is now blocked, won't exit until app is closed/shutdown

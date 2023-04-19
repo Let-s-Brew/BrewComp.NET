@@ -10,10 +10,10 @@ public record HomebrewClub
     public string? Abbreviation { get; init; }
     public Uri? Homepage { get; init; }
 
-    public HomebrewClub(string name, string abbr = "", Uri? homepage = null)
+    public HomebrewClub(string name, string abbreviation = "", Uri? homepage = null)
     {
         Name = name;
-        Abbreviation = abbr;
+        Abbreviation = abbreviation;
         Homepage = homepage;
     }
 }

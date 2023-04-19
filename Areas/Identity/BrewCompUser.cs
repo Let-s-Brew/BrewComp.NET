@@ -4,7 +4,7 @@ using BrewCode.AddressTools.Models;
 
 namespace BrewComp.Identity;
 
-public class UserIdentity : IdentityUser
+public class BrewCompUser : IdentityUser
 {
     public string FirstName { get; set; }
     public string LastName { get; set; }
@@ -13,7 +13,7 @@ public class UserIdentity : IdentityUser
     public HomebrewClub? Club { get; set; }
     public IEnumerable<CompetitionEntry> Entries { get; set; } = new List<CompetitionEntry>();
 
-    public UserIdentity(string firstName, string lastName, IEnumerable<Competition> competitions, CivicAddress? address = null, HomebrewClub? club = null)
+    public BrewCompUser(string firstName, string lastName, IEnumerable<Competition> competitions, CivicAddress? address = null, HomebrewClub? club = null)
     {
         FirstName = firstName;
         LastName = lastName;
@@ -22,6 +22,6 @@ public class UserIdentity : IdentityUser
         Club = club;
     }
 
-    public UserIdentity(string firstName, string lastName)
+    public BrewCompUser(string firstName, string lastName)
       :this(firstName, lastName, new List<Competition>()) { }
 }
