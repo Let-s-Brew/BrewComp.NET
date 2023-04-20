@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 using Npgsql;
-using System.Security.Policy;
 using System.Text.Json;
 
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -18,12 +17,12 @@ namespace BrewComp.Data
     public class BrewCompDbContext : IdentityDbContext<BrewCompUser>
     {
         // User/Role DbSets are done by the Base class
-        
+
         public DbSet<Competition> Competitions { get; set; }
         public DbSet<HomebrewClub> Clubs { get; set; }
 
         private ServerDBConfig _dbConfig = new ServerDBConfig();
-        
+
         public BrewCompDbContext(DbContextOptions<BrewCompDbContext> options)
             : base(options)
         {
@@ -51,7 +50,7 @@ namespace BrewComp.Data
             configurationBuilder.Properties<CivicAddress>().HaveConversion<JSONSerializer<CivicAddress>>();
             configurationBuilder.Properties<List<CivicAddress>>().HaveConversion<JSONSerializer<List<CivicAddress>>>();
             configurationBuilder.Properties<Interval>().HaveConversion<JSONSerializer<Interval>>();
-            configurationBuilder.Properties<IGuidelines<IStyleCategory<IStyle>,IStyle>>().HaveConversion<GuidelinesConverter>();
+            configurationBuilder.Properties<IGuidelines<IStyleCategory<IStyle>, IStyle>>().HaveConversion<GuidelinesConverter>();
             configurationBuilder.Properties<IStyle>().HaveConversion<StyleConverter>();
         }
 
@@ -81,13 +80,13 @@ namespace BrewComp.Data
             {
                 cb.ToTable(name: "Competitions");
                 cb.HasIndex(e => e.Id).IncludeProperties(e => e.Name);
-                cb.HasMany(c => c.Entries).WithOne().HasForeignKey(e=>e.Id);
-                cb.HasMany(c => c.Entrants).WithMany(e=>e.Competitions);
+                cb.HasMany(c => c.Entries).WithOne().HasForeignKey(e => e.Id);
+                cb.HasMany(c => c.Entrants).WithMany(e => e.Competitions);
             });
 
 
             builder.HasDefaultSchema("Identity");
-            
+
             builder.Entity<IdentityRole>(entity =>
             {
                 entity.ToTable(name: "Role");
@@ -116,14 +115,15 @@ namespace BrewComp.Data
         }
     }
 
-    internal class GuidelinesConverter : ValueConverter<IGuidelines<IStyleCategory<IStyle>,IStyle>, string>
+    internal class GuidelinesConverter : ValueConverter<IGuidelines<IStyleCategory<IStyle>, IStyle>, string>
     {
 
         public GuidelinesConverter()
             : base( // TODO - serialize other guideline types to an ID. 
                   g => "2021BJCP",
                   s => (IGuidelines<IStyleCategory<IStyle>, IStyle>)BrewCode.BrewGuide.BJCP.Guidelines.BJCP2021Guidelines
-             ) {}
+             )
+        { }
     }
 
     internal class StyleConverter : ValueConverter<IStyle, string>
@@ -132,7 +132,8 @@ namespace BrewComp.Data
             : base(
                 s => s.Id,
                 s => BrewCode.BrewGuide.BJCP.Guidelines.StyleFromString(s)
-        ){ }
+        )
+        { }
     }
 
     internal class JSONSerializer<T> : ValueConverter<T, string>
@@ -140,7 +141,8 @@ namespace BrewComp.Data
         public JSONSerializer()
             : base(
                   o => JsonSerializer.Serialize(o, new JsonSerializerOptions()),
-                  j => JsonSerializer.Deserialize<T>(j,new JsonSerializerOptions())
-        ) { }
+                  j => JsonSerializer.Deserialize<T>(j, new JsonSerializerOptions())
+        )
+        { }
     }
 }

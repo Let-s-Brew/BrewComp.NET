@@ -21,7 +21,7 @@ public class Competition
     public List<CivicAddress> DropOffAddresses { get; set; } = new List<CivicAddress>();
 
     // Store coordinators by ID for now, use separate RoleManger for each competition? Create dynamic policies for Coordinator Claims?
-    public List<string> CompetitionCoordinators { get; set; } = new List<string>(); 
+    public List<string> CompetitionCoordinators { get; set; } = new List<string>();
 
 }
 

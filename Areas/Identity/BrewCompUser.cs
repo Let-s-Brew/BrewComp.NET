@@ -1,6 +1,6 @@
-﻿using BrewComp.Data;
+﻿using BrewCode.AddressTools.Models;
+using BrewComp.Data;
 using Microsoft.AspNetCore.Identity;
-using BrewCode.AddressTools.Models;
 
 namespace BrewComp.Identity;
 
@@ -23,5 +23,5 @@ public class BrewCompUser : IdentityUser
     }
 
     public BrewCompUser(string firstName, string lastName)
-      :this(firstName, lastName, new List<Competition>()) { }
+      : this(firstName, lastName, new List<Competition>()) { }
 }

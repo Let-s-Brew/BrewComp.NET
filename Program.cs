@@ -5,11 +5,9 @@ using BrewComp.Identity;
 using Jot;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 
-namespace BrewComp;  
+namespace BrewComp;
 public class Program
 {
     internal static Tracker Tracker = new Tracker();
@@ -17,7 +15,8 @@ public class Program
     {
         //Use JOT to save/persist the DB info
         Tracker.Configure<ServerDBConfig>().Properties(
-                config => new {
+                config => new
+                {
                     //config.DBType, //TODO Support multiple DB implementations?
                     config.DBName,
                     config.DBHost,
@@ -57,11 +56,11 @@ public class Program
         app.UseHttpsRedirection();
 
         app.UseStaticFiles();
-        
+
+        app.UseRouting();
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseRouting();
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllerRoute(
