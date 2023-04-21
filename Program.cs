@@ -5,7 +5,7 @@ using BrewComp.Identity;
 using Jot;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace BrewComp;
 public class Program
@@ -32,12 +32,14 @@ public class Program
         builder.Services.AddAuthentication();
         builder.Services.AddAuthorization();
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-        builder.Services.AddIdentity<BrewCompUser, IdentityRole>()
+        builder.Services.AddIdentity<BrewCompUser, IdentityRole>(o => o.SignIn.RequireConfirmedEmail = false)
+            .AddDefaultTokenProviders()
             .AddRoleManager<RoleManager<IdentityRole>>()
             .AddEntityFrameworkStores<BrewCompDbContext>();
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
         builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<BrewCompUser>>();
+        builder.Services.AddSingleton<IEmailSender, EmailSender>();
 
         var app = builder.Build();
 
@@ -69,6 +71,7 @@ public class Program
             );
         });
 
+        app.MapRazorPages();
         app.MapControllers();
         app.MapBlazorHub();
         app.MapFallbackToPage("/_Host");
