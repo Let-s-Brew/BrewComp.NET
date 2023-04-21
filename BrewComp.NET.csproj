@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Data\clubs.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BrewCode.AddressTools" Version="1.0.1" />
     <PackageReference Include="BrewCode.BrewGuide" Version="1.0.2" />
     <PackageReference Include="Jot" Version="2.1.13" />
@@ -30,6 +34,12 @@
     <Folder Include="Areas\Configuration\Data\" />
     <Folder Include="Areas\Configuration\Views\" />
     <Folder Include="Migrations\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data\clubs.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

@@ -9,19 +9,20 @@ public class BrewCompUser : IdentityUser
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public CivicAddress? Address { get; set; }
-    public IEnumerable<Competition> Competitions { get; set; } = new List<Competition>();
+    public ICollection<Competition> Competitions { get; set; } = new List<Competition>();
     public HomebrewClub? Club { get; set; }
-    public IEnumerable<CompetitionEntry> Entries { get; set; } = new List<CompetitionEntry>();
+    public ICollection<CompetitionEntry> Entries { get; set; } = new List<CompetitionEntry>();
 
-    public BrewCompUser(string firstName, string lastName, IEnumerable<Competition> competitions, CivicAddress? address = null, HomebrewClub? club = null)
+    public BrewCompUser(string firstName, string lastName, ICollection<Competition> competitions, ICollection<CompetitionEntry> entries, CivicAddress? address = null, HomebrewClub? club = null)
     {
         FirstName = firstName;
         LastName = lastName;
         Address = address;
         Competitions = competitions;
         Club = club;
+        Entries = entries;
     }
 
     public BrewCompUser(string firstName, string lastName)
-      : this(firstName, lastName, new List<Competition>()) { }
+      : this(firstName, lastName, new List<Competition>(), new List<CompetitionEntry>()) { }
 }

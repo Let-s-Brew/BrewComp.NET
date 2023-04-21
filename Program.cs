@@ -3,6 +3,7 @@ using BrewComp.Areas.Identity;
 using BrewComp.Data;
 using BrewComp.Identity;
 using Jot;
+using MessagePack.Resolvers;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -89,10 +90,18 @@ public class Program
                     await _roleManager.CreateAsync(new IdentityRole(role));
                 }
             }
+
+            var _context = scope.ServiceProvider.GetRequiredService<BrewCompDbContext>();
+            
+            if(_context.Clubs.Count() == 0)
+            {
+                HomebrewClub.PopulateDb(_context, app.Logger);
+            }
         }
         app.Run();
-
         // This thread is now blocked, won't exit until app is closed/shutdown
+
+        //Save our tracked data on shutdown
         Tracker.PersistAll();
     }
 }

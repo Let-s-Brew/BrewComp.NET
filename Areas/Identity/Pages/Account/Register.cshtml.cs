@@ -91,6 +91,14 @@ namespace BrewComp.Areas.Identity.Pages.Account
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
+
+            [Required]
+            [Display(Name = "First Name")]
+            public string FirstName { get; set; }
+            [Required]
+            [Display(Name = "Last Name")]
+            public string LastName { get; set; }
+
         }
 
 
@@ -106,7 +114,7 @@ namespace BrewComp.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
-                var user = CreateUser();
+                var user = CreateUser(Input.FirstName, Input.LastName);
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
@@ -148,16 +156,17 @@ namespace BrewComp.Areas.Identity.Pages.Account
             return Page();
         }
 
-        private BrewCompUser CreateUser()
+        private BrewCompUser CreateUser(string first, string last)
         {
             try
             {
-                return Activator.CreateInstance<BrewCompUser>();
+                //return Activator.CreateInstance<BrewCompUser>();
+                return new BrewCompUser(first, last);
             }
             catch
             {
-                throw new InvalidOperationException($"Can't create an instance of '{nameof(IdentityUser)}'. " +
-                    $"Ensure that '{nameof(IdentityUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
+                throw new InvalidOperationException($"Can't create an instance of '{nameof(BrewCompUser)}'. " +
+                    $"Ensure that '{nameof(BrewCompUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
                     $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
             }
         }

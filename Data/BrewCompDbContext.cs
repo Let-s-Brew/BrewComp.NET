@@ -5,6 +5,7 @@ using BrewComp.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 using Npgsql;
@@ -39,7 +40,7 @@ namespace BrewComp.Data
             npgb.Password = _dbConfig.DBPass;
             npgb.Database = _dbConfig.DBName;
             npgb.TrustServerCertificate = true;
-            //npgb.Add("trusted_connection", true);
+
             optionsBuilder.UseNpgsql(npgb.ConnectionString, o => o.UseNodaTime());
         }
 
@@ -48,7 +49,7 @@ namespace BrewComp.Data
             base.ConfigureConventions(configurationBuilder);
 
             configurationBuilder.Properties<CivicAddress>().HaveConversion<JSONSerializer<CivicAddress>>();
-            configurationBuilder.Properties<List<CivicAddress>>().HaveConversion<JSONSerializer<List<CivicAddress>>>();
+            configurationBuilder.Properties<List<CivicAddress>>().HaveConversion<JSONSerializer<List<CivicAddress>>, ListComparer<CivicAddress>>();
             configurationBuilder.Properties<Interval>().HaveConversion<JSONSerializer<Interval>>();
             configurationBuilder.Properties<IGuidelines<IStyleCategory<IStyle>, IStyle>>().HaveConversion<GuidelinesConverter>();
             configurationBuilder.Properties<IStyle>().HaveConversion<StyleConverter>();
@@ -57,35 +58,31 @@ namespace BrewComp.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+            builder.HasDefaultSchema("BrewComp.NET");
 
-            builder.Entity<BrewCompUser>(bb =>
+            builder.Entity<BrewCompUser>(u =>
             {
-                bb.ToTable(name: "Users");
-                bb.HasIndex(u => u.Id).IncludeProperties(u => new { u.NormalizedUserName, u.LastName, u.FirstName });
-                bb.HasMany(b => b.Entries);
-                bb.HasMany(u => u.Competitions);
-                bb.HasOne(u => u.Club); // Do we want to allow entrants to be able to belong to more than one club?
+                u.ToTable(name: "Users");
+                u.HasIndex(u => u.Id).IncludeProperties(u => new { u.NormalizedUserName, u.LastName, u.FirstName });
+                u.HasMany(b => b.Entries).WithOne(e => e.Brewer);
+                u.HasMany(u => u.Competitions).WithMany(c => c.Entrants);
+                u.HasOne(u => u.Club); // Do we want to allow entrants to be able to belong to more than one club?
 
-            });
-
-            builder.Entity<CompetitionEntry>(ceb =>
-            {
-                ceb.ToTable(name: "Entries");
-                ceb.HasIndex(e => e.Id).IncludeProperties(e => e.EntryId);
-                ceb.HasOne(ce => ce.Brewer);
-                ceb.HasOne(ce => ce.Competition);
             });
 
             builder.Entity<Competition>(cb =>
             {
                 cb.ToTable(name: "Competitions");
                 cb.HasIndex(e => e.Id).IncludeProperties(e => e.Name);
-                cb.HasMany(c => c.Entries).WithOne().HasForeignKey(e => e.Id);
+                cb.HasMany(c => c.Entries).WithOne(e => e.Competition);
                 cb.HasMany(c => c.Entrants).WithMany(e => e.Competitions);
             });
 
-
-            builder.HasDefaultSchema("Identity");
+            builder.Entity<CompetitionEntry>(ceb =>
+            {
+                ceb.ToTable(name: "Entries");
+                ceb.HasIndex(e => e.Id).IncludeProperties(e => e.EntryId);
+            });
 
             builder.Entity<IdentityRole>(entity =>
             {
@@ -143,6 +140,17 @@ namespace BrewComp.Data
                   o => JsonSerializer.Serialize(o, new JsonSerializerOptions()),
                   j => JsonSerializer.Deserialize<T>(j, new JsonSerializerOptions())
         )
+        { }
+    }
+
+    internal class ListComparer<T> : ValueComparer<List<T>>
+    {
+        public ListComparer()
+            : base(
+                  (l1, l2) => l1.Count == l2.Count && l1.All(x => l2.Contains(x)),
+                  l => l.GetHashCode(),
+                  l => l.ToList()
+            )
         { }
     }
 }
