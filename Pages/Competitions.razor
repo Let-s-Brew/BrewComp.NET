@@ -1,0 +1,36 @@
+﻿@page "/Competitions"
+@inject BrewCompDbContext Context
+<h3>Competitions</h3>
+
+@if(_competitions == null)
+{
+    <p><em>Loading Data...</em></p>
+} else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Competition Name</th>
+                <th>Competition Host</th>
+                <th>Registration Dates</th>
+            </tr>
+        </thead>
+        @foreach(var comp in _competitions)
+        {
+            <tr>
+                <td>@comp.Name</td>
+                <td>""</td>
+                <td>@comp.RegistrationDates</td>
+            </tr>
+        }
+    </table>
+}
+@code {
+    private Competition[]? _competitions;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _competitions = Context.Competitions.ToArray();
+    }
+}
