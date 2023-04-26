@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
-using Npgsql;
+
 using System.Text.Json;
 
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -27,21 +27,12 @@ namespace BrewComp.Data
         public BrewCompDbContext(DbContextOptions<BrewCompDbContext> options)
             : base(options)
         {
-            Program.Tracker.Track(_dbConfig);
+
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
-            var npgb = new NpgsqlConnectionStringBuilder();
-            npgb.Host = _dbConfig.DBHost;
-            npgb.Port = _dbConfig.DBPort;
-            npgb.Username = _dbConfig.DBUser;
-            npgb.Password = _dbConfig.DBPass;
-            npgb.Database = _dbConfig.DBName;
-            npgb.TrustServerCertificate = true;
-
-            optionsBuilder.UseNpgsql(npgb.ConnectionString, o => o.UseNodaTime());
         }
 
         protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
@@ -58,7 +49,7 @@ namespace BrewComp.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            builder.HasDefaultSchema("BrewComp.NET");
+            builder.HasDefaultSchema("BrewComp");
 
             builder.Entity<BrewCompUser>(u =>
             {
@@ -76,6 +67,7 @@ namespace BrewComp.Data
                 cb.HasIndex(e => e.Id).IncludeProperties(e => e.Name);
                 cb.HasMany(c => c.Entries).WithOne(e => e.Competition);
                 cb.HasMany(c => c.Entrants).WithMany(e => e.Competitions);
+                cb.HasOne(c => c.Host).WithMany().IsRequired();
             });
 
             builder.Entity<CompetitionEntry>(ceb =>

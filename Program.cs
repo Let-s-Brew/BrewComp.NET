@@ -1,35 +1,21 @@
-using BrewComp.Areas.Configuration.Models;
 using BrewComp.Areas.Identity;
 using BrewComp.Data;
 using BrewComp.Identity;
-using Jot;
-using MessagePack.Resolvers;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace BrewComp;
 public class Program
 {
-    internal static Tracker Tracker = new Tracker();
     public static async Task Main(string[] args)
     {
-        //Use JOT to save/persist the DB info
-        Tracker.Configure<ServerDBConfig>().Properties(
-                config => new
-                {
-                    //config.DBType, //TODO Support multiple DB implementations?
-                    config.DBName,
-                    config.DBHost,
-                    config.DBPort,
-                    config.DBUser,
-                    config.DBPass
-                }
-            );
 
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddDbContext<BrewCompDbContext>();
+        var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+        builder.Services.AddDbContext<BrewCompDbContext>(o => o.UseNpgsql(connStr, o=>o.UseNodaTime()));
         builder.Services.AddAuthentication();
         builder.Services.AddAuthorization();
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -101,7 +87,5 @@ public class Program
         app.Run();
         // This thread is now blocked, won't exit until app is closed/shutdown
 
-        //Save our tracked data on shutdown
-        Tracker.PersistAll();
     }
 }
