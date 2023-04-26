@@ -1,6 +1,5 @@
 ﻿using BrewCode.AddressTools.Models;
 using BrewCode.BrewGuide;
-using BrewComp.Areas.Configuration.Models;
 using BrewComp.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -21,8 +20,6 @@ namespace BrewComp.Data
 
         public DbSet<Competition> Competitions { get; set; }
         public DbSet<HomebrewClub> Clubs { get; set; }
-
-        private ServerDBConfig _dbConfig = new ServerDBConfig();
 
         public BrewCompDbContext(DbContextOptions<BrewCompDbContext> options)
             : base(options)
