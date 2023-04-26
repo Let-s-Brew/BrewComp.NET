@@ -64,7 +64,7 @@ namespace BrewComp.Data
                 cb.HasIndex(e => e.Id).IncludeProperties(e => e.Name);
                 cb.HasMany(c => c.Entries).WithOne(e => e.Competition);
                 cb.HasMany(c => c.Entrants).WithMany(e => e.Competitions);
-                cb.HasOne(c => c.Host).WithMany().IsRequired();
+                cb.HasMany(c => c.Sponsors);
             });
 
             builder.Entity<CompetitionEntry>(ceb =>

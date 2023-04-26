@@ -29,8 +29,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Areas\Configuration\Data\" />
-    <Folder Include="Areas\Configuration\Views\" />
     <Folder Include="Migrations\" />
   </ItemGroup>
 
