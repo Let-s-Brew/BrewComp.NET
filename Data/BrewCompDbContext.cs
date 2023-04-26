@@ -18,8 +18,8 @@ namespace BrewComp.Data
     {
         // User/Role DbSets are done by the Base class
 
-        public DbSet<Competition> Competitions { get; set; }
-        public DbSet<HomebrewClub> Clubs { get; set; }
+        public DbSet<Competition> Competitions { get; set; } = null!;
+        public DbSet<HomebrewClub> Clubs { get; set; } = null!;
 
         public BrewCompDbContext(DbContextOptions<BrewCompDbContext> options)
             : base(options)
