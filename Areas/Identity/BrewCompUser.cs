@@ -12,6 +12,7 @@ public class BrewCompUser : IdentityUser
     public ICollection<Competition> Competitions { get; set; } = new List<Competition>();
     public HomebrewClub? Club { get; set; }
     public ICollection<CompetitionEntry> Entries { get; set; } = new List<CompetitionEntry>();
+    public List<string> CompCoordinator { get; set; } = new List<string>();
 
     public BrewCompUser(string firstName, string lastName, ICollection<Competition> competitions, ICollection<CompetitionEntry> entries, CivicAddress? address = null, HomebrewClub? club = null)
     {

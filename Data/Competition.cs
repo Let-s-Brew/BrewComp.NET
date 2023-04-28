@@ -21,9 +21,5 @@ public class Competition
     public List<CivicAddress> DropOffAddresses { get; set; } = new List<CivicAddress>();
     public List<Sponsor> Sponsors { get; set; } = new List<Sponsor>();
     public bool BJCPSanctioned { get; set; } = false;
-
-    // Store coordinators by ID for now, use separate RoleManger for each competition? Create dynamic policies for Coordinator Claims?
-    public List<string> CompetitionCoordinators { get; set; } = new List<string>();
-
 }
 
