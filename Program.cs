@@ -1,6 +1,7 @@
 using BrewComp.Areas.Identity;
 using BrewComp.Data;
 using BrewComp.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -27,6 +28,7 @@ public class Program
         builder.Services.AddServerSideBlazor();
         builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<BrewCompUser>>();
         builder.Services.AddSingleton<IEmailSender, EmailSender>();
+        builder.Services.AddTransient<IAuthorizationHandler, CoordinatorHandler>();
 
         var app = builder.Build();
 
