@@ -1,0 +1,32 @@
+﻿@page "/Competition/{CompId}"
+@inject BrewCompDbContext _dbContext
+
+@if(_loading)
+{
+    <h2>Loading Data...</h2>
+} 
+else if (_comp is null)
+{
+    <h3>Unable to find Comptition with Id: @CompId</h3>
+}
+else
+{
+    <h3>Competition Details</h3>
+
+    <p>Todo: Load competition details</p>
+}
+
+@code {
+    [Parameter]
+    public Guid CompId { get; set; }
+
+    private bool _loading = true;
+    private BrewComp.Data.Competition? _comp;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _comp = await _dbContext.Competitions.FindAsync(CompId);
+
+        return;
+    }
+}
