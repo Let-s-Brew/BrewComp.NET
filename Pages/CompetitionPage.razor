@@ -18,7 +18,7 @@ else
 
 @code {
     [Parameter]
-    public string CompId { get; set; }
+    public string CompId { get; set; } = null!;
 
     private bool _loading = true;
     private Competition? _comp;
