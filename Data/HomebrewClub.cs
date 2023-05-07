@@ -29,11 +29,17 @@ public record HomebrewClub
     {
         try
         {
+#pragma warning disable CS8604 // Possible null reference argument.
             using (JsonDocument doc = JsonDocument.Parse(Assembly.GetExecutingAssembly().GetManifestResourceStream($"BrewComp.Data.clubs.json")))
             {
+#pragma warning restore CS8604 // Possible null reference argument.
                 Regex rx = new Regex(@"(?<club>[^\(]+)\s*\(*(?<abbr>[^\)]+)*\)*");
                 foreach(var club in doc.RootElement.GetProperty("records").EnumerateArray()) { 
                     var nameStr = club.GetProperty("Name").GetString();
+                    if (string.IsNullOrEmpty(nameStr))
+                    {
+                        continue;
+                    }
                     Uri.TryCreate(club.GetProperty("Website").GetString(), new UriCreationOptions(), out var url);
                     var match = rx.Match(nameStr);
                     if( match.Success )

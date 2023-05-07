@@ -116,6 +116,7 @@ namespace BrewComp.Data
         { }
     }
 
+#pragma warning disable CS8603 // Possible null reference return.
     internal class StyleConverter : ValueConverter<IStyle, string>
     {
         public StyleConverter()
@@ -140,10 +141,11 @@ namespace BrewComp.Data
     {
         public ListComparer()
             : base(
-                  (l1, l2) => l1.Count == l2.Count && l1.All(x => l2.Contains(x)),
+                  (l1, l2) => l1 != null && l2 != null && l1.Count == l2.Count && l1.All(x => l2.Contains(x)),
                   l => l.GetHashCode(),
                   l => l.ToList()
             )
         { }
     }
+#pragma warning restore CS8603 // Possible null reference return.
 }
