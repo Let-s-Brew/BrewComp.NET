@@ -68,6 +68,10 @@ public class Program
         //Default Roles
         using (var scope = app.Services.CreateScope())
         {
+            var db = scope.ServiceProvider.GetService<BrewCompDbContext>();
+
+            db?.Database.EnsureCreated();
+
             var _roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             string[] _defaultRoles = { "siteadmin", "coordinator", "participant", "steward", "judge" };
 

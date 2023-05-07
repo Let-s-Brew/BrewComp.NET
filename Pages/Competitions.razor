@@ -1,5 +1,9 @@
 ﻿@page "/Competitions"
 @inject BrewCompDbContext Context
+@using NodaTime
+@using NodaTime.TimeZones
+@using NodaTime.Text
+
 <h3>Competitions</h3>
 
 @if(_competitions == null)
@@ -17,15 +21,20 @@
         @foreach(var comp in _competitions)
         {
             <tr>
-                <td>@comp.Name</td>
-                <td>""</td>
-                <td>@comp.RegistrationDates</td>
+                <td><a href="/Competition/@comp.Id">@comp.Name</a></td>
+                <td><strong>Opens: </strong>@_formatter.Format(comp.RegistrationDates.Start.InZone(_tz))<br />
+                    <strong>Ends: </strong>@_formatter.Format(comp.RegistrationDates.End.InZone(_tz))
+
+                </td>
             </tr>
         }
     </table>
 }
 @code {
     private Competition[]? _competitions;
+
+    private DateTimeZone _tz = BclDateTimeZone.ForSystemDefault();
+    private IPattern<ZonedDateTime> _formatter = ZonedDateTimePattern.CreateWithCurrentCulture("yyyy-MM-dd h:mm tt", NodaTime.DateTimeZoneProviders.Bcl);
 
     protected override void OnInitialized()
     {

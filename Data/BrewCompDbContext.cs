@@ -51,6 +51,7 @@ namespace BrewComp.Data
             builder.Entity<BrewCompUser>(u =>
             {
                 u.ToTable(name: "Users");
+                u.HasKey(u => u.Id);
                 u.HasIndex(u => u.Id).IncludeProperties(u => new { u.NormalizedUserName, u.LastName, u.FirstName });
                 u.HasMany(b => b.Entries).WithOne(e => e.Brewer);
                 u.HasMany(u => u.Competitions).WithMany(c => c.Entrants);
@@ -61,15 +62,18 @@ namespace BrewComp.Data
             builder.Entity<Competition>(cb =>
             {
                 cb.ToTable(name: "Competitions");
+                cb.HasKey(c => c.Id);
                 cb.HasIndex(e => e.Id).IncludeProperties(e => e.Name);
                 cb.HasMany(c => c.Entries).WithOne(e => e.Competition);
                 cb.HasMany(c => c.Entrants).WithMany(e => e.Competitions);
                 cb.HasMany(c => c.Sponsors);
+                cb.OwnsOne(c => c.JudgingIds);
             });
 
             builder.Entity<CompetitionEntry>(ceb =>
             {
                 ceb.ToTable(name: "Entries");
+                ceb.HasKey(ce => ce.Id);
                 ceb.HasIndex(e => e.Id).IncludeProperties(e => e.EntryId);
             });
 

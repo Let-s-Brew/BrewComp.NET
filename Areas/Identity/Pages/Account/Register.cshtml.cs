@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
+using BrewComp.Data;
 using BrewComp.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -23,13 +24,17 @@ namespace BrewComp.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<BrewCompUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly BrewCompDbContext _dbContext;
+
+        public readonly bool _isFirstUser;
 
         public RegisterModel(
             UserManager<BrewCompUser> userManager,
             IUserStore<BrewCompUser> userStore,
             SignInManager<BrewCompUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            BrewCompDbContext dbContext)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -37,6 +42,9 @@ namespace BrewComp.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+
+            _isFirstUser = userManager.Users.Count() == 0;
+            _dbContext = dbContext;
         }
 
         /// <summary>
@@ -123,8 +131,41 @@ namespace BrewComp.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
-
                     var userId = await _userManager.GetUserIdAsync(user);
+
+                    if(_isFirstUser)
+                    {
+                        _logger.LogInformation("First user has been created, granting Site Admin privileges");
+                        await _userManager.AddToRoleAsync(user, "siteadmin");
+
+                        _logger.LogDebug("Creating dummy data for testing");
+                        var comp = new Competition()
+                        {
+                            Name = "Testing Competition",
+                            CompetitionDates = new NodaTime.Interval(
+                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
+                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow.AddMonths(1))),
+                            DropOffDates = new NodaTime.Interval(
+                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
+                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow.AddMonths(1))),
+                            ShippingDates = new NodaTime.Interval(
+                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
+                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow.AddMonths(1))),
+                            RegistrationDates = new NodaTime.Interval(
+                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
+                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow.AddMonths(1))),
+                            EntryRegistrationDates = new NodaTime.Interval(
+                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
+                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow.AddMonths(1)))
+                            // All other data defaults to empty sets/data
+                        };
+                        _dbContext.Competitions.Add(comp);
+                        await _dbContext.SaveChangesAsync();
+
+                        await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("Coordinator", comp.Id.ToString()));
+
+                    }
+
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                     var callbackUrl = Url.Page(

@@ -18,15 +18,15 @@ else
 
 @code {
     [Parameter]
-    public Guid CompId { get; set; }
+    public string CompId { get; set; }
 
     private bool _loading = true;
-    private BrewComp.Data.Competition? _comp;
+    private Competition? _comp;
 
     protected override async Task OnParametersSetAsync()
     {
-        _comp = await _dbContext.Competitions.FindAsync(CompId);
-
+        _comp = await _dbContext.Competitions.FindAsync(Guid.Parse(CompId));
+        _loading = false;
         return;
     }
 }
