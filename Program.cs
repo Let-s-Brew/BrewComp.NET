@@ -16,7 +16,7 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
-        builder.Services.AddDbContext<BrewCompDbContext>(o => o.UseNpgsql(connStr, o=>o.UseNodaTime()));
+        builder.Services.AddDbContext<BrewCompDbContext>(o => o.UseNpgsql(connStr));
         builder.Services.AddAuthentication();
         builder.Services.AddAuthorization();
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();

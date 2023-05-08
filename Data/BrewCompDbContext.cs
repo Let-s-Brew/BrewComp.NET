@@ -6,8 +6,6 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NodaTime;
-
 using System.Text.Json;
 
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -38,7 +36,7 @@ namespace BrewComp.Data
 
             configurationBuilder.Properties<CivicAddress>().HaveConversion<JSONSerializer<CivicAddress>>();
             configurationBuilder.Properties<List<CivicAddress>>().HaveConversion<JSONSerializer<List<CivicAddress>>, ListComparer<CivicAddress>>();
-            configurationBuilder.Properties<Interval>().HaveConversion<JSONSerializer<Interval>>();
+            configurationBuilder.Properties<DateRange>().HaveConversion<JSONSerializer<DateRange>>();
             configurationBuilder.Properties<IGuidelines<IStyleCategory<IStyle>, IStyle>>().HaveConversion<GuidelinesConverter>();
             configurationBuilder.Properties<IStyle>().HaveConversion<StyleConverter>();
         }
