@@ -1,8 +1,5 @@
 ﻿@page "/Competitions"
 @inject BrewCompDbContext Context
-@using NodaTime
-@using NodaTime.TimeZones
-@using NodaTime.Text
 
 <h3>Competitions</h3>
 
@@ -22,9 +19,12 @@
         {
             <tr>
                 <td><a href="/Competition/@comp.Id">@comp.Name</a></td>
-                <td><strong>Opens: </strong>@_formatter.Format(comp.RegistrationDates.Start.InZone(_tz))<br />
-                    <strong>Ends: </strong>@_formatter.Format(comp.RegistrationDates.End.InZone(_tz))
-
+                <td>
+                    <strong>Opens:</strong><BlazorTime.ToLocal DateTime=@comp.CompetitionDates.StartDate Format="yyyy-mm-dd hh:MM TT"/><br />
+                    @if(comp.CompetitionDates.EndDate.HasValue)
+                    {
+                        <strong>Ends: </strong><BlazorTime.ToLocal DateTime=@comp.CompetitionDates.EndDate.Value Format="yyyy-mm-dd hh:MM TT"/>
+                    }
                 </td>
             </tr>
         }
@@ -32,9 +32,6 @@
 }
 @code {
     private Competition[]? _competitions;
-
-    private DateTimeZone _tz = BclDateTimeZone.ForSystemDefault();
-    private IPattern<ZonedDateTime> _formatter = ZonedDateTimePattern.CreateWithCurrentCulture("yyyy-MM-dd h:mm tt", NodaTime.DateTimeZoneProviders.Bcl);
 
     protected override void OnInitialized()
     {

@@ -142,21 +142,11 @@ namespace BrewComp.Areas.Identity.Pages.Account
                         var comp = new Competition()
                         {
                             Name = "Testing Competition",
-                            CompetitionDates = new NodaTime.Interval(
-                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
-                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow.AddMonths(1))),
-                            DropOffDates = new NodaTime.Interval(
-                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
-                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow.AddMonths(1))),
-                            ShippingDates = new NodaTime.Interval(
-                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
-                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow.AddMonths(1))),
-                            RegistrationDates = new NodaTime.Interval(
-                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
-                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow.AddMonths(1))),
-                            EntryRegistrationDates = new NodaTime.Interval(
-                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
-                                NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow.AddMonths(1)))
+                            CompetitionDates = new DateRange(DateTime.UtcNow,DateTime.UtcNow.AddMonths(1)),
+                            DropOffDates = new DateRange(DateTime.UtcNow, DateTime.UtcNow.AddMonths(1)),
+                            ShippingDates = new DateRange(DateTime.UtcNow, DateTime.UtcNow.AddMonths(1)),
+                            RegistrationDates = new DateRange(DateTime.UtcNow, DateTime.UtcNow.AddMonths(1)),
+                            EntryRegistrationDates = new DateRange(DateTime.UtcNow, DateTime.UtcNow.AddMonths(1))
                             // All other data defaults to empty sets/data
                         };
                         _dbContext.Competitions.Add(comp);
