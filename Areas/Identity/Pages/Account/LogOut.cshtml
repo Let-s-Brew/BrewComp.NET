@@ -12,4 +12,9 @@
 
         return Redirect("~/");
     }
+
+    public async Task<IActionResult> OnGetAsync()
+    {
+        return await OnPost();
+    }
 }
