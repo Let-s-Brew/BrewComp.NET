@@ -1,12 +1,23 @@
-﻿<AuthorizeView>
-    <Authorized>
-        <a href="Identity/Account/Manage">Hello, @context.User.Identity?.Name!</a>
-        <form method="post" action="Identity/Account/LogOut">
-            <button type="submit" class="nav-link btn btn-link">Log out</button>
-        </form>
-    </Authorized>
-    <NotAuthorized>
-        <a href="Identity/Account/Register">Register</a>
-        <a href="Identity/Account/Login">Log in</a>
-    </NotAuthorized>
-</AuthorizeView>
+﻿    <div class="dropdown">
+        <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="oi-people">Menu</span>
+        </button>
+        <ul class="dropdown-menu">
+            <AuthorizeView>
+                <Authorized>
+                    <li><h6 class="dropdown-header">Hello, @context?.User?.Identity?.Name!</h6></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a href="Identity/Account/Manage">Profile</a></li>
+                    <li>
+                        <form method="post" action="Identity/Account/LogOut">
+                            <button type="submit" class="nav-link btn btn-link">Log out</button>
+                        </form>
+                    </li>
+                </Authorized>
+                <NotAuthorized>
+                    <li><a href="Identity/Account/Register">Register</a></li>
+                    <li><a href="Identity/Account/Login">Log in</a></li>
+                </NotAuthorized>
+            </AuthorizeView>
+        </ul>
+    </div>
