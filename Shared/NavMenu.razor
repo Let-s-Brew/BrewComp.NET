@@ -10,19 +10,20 @@
 <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
     <nav class="flex-column">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <i class="bi bi-house-fill" aria-hidden="true"></i> Home
+            <NavLink class="icon-link nav-link" href="" Match="NavLinkMatch.All">
+                <img width="@iconSize" height="@iconSize" src="css/bootstrap/icons/house-fill.svg" aria-hidden="true" alt="Home" /> Home
             </NavLink>
         </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/Competitions">
-                <i class="bi bi-trophy-fill" aria-hidden="true"></i> Competitions
+            <NavLink class="icon-link nav-link" href="/Competitions">
+                <img width="@iconSize" height="@iconSize" src="css/bootstrap/icons/trophy-fill.svg" aria-hidden="true" /> Competitions
             </NavLink>
         </div>
     </nav>
 </div>
 
 @code {
+    private int iconSize = 24;
     private bool collapseNavMenu = true;
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
