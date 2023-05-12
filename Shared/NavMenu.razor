@@ -1,36 +1,24 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <img class="img-fluid" src="assets/site-logo.png" />
-        <a class="navbar-brand" href="">BrewComp.NET</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
-</div>
+﻿@using BlazorBootstrap
 
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="icon-link nav-link" href="" Match="NavLinkMatch.All">
-                <img width="@iconSize" height="@iconSize" src="css/bootstrap/icons/house-fill.svg" aria-hidden="true" alt="Home" /> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="icon-link nav-link" href="/Competitions">
-                <img width="@iconSize" height="@iconSize" src="css/bootstrap/icons/trophy-fill.svg" aria-hidden="true" /> Competitions
-            </NavLink>
-        </div>
-    </nav>
-</div>
+<Sidebar @ref="sidebar"
+    Title="BrewComp.Net"
+    DataProvider="SidebarDataProvider"
+    ImageSrc="assets/site-logo.png"/>
 
 @code {
-    private int iconSize = 24;
-    private bool collapseNavMenu = true;
-
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    private Sidebar sidebar = default!;
 
     private void ToggleNavMenu()
     {
-        collapseNavMenu = !collapseNavMenu;
+        sidebar.ToggleSidebar();
+    }
+
+    private async Task<SidebarDataProviderResult> SidebarDataProvider(SidebarDataProviderRequest request)
+    {
+        return await Task.FromResult(request.ApplyTo(new List<NavItem>
+        {
+            new NavItem {Id = "home", Href = "/", IconName = IconName.HouseFill, Text="Home", Match = NavLinkMatch.All},
+            new NavItem {Id = "competition", Href = "/Competition", IconName = IconName.TrophyFill, Text="Competitions"}
+        }));
     }
 }
