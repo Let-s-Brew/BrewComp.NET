@@ -1,42 +1,34 @@
 ﻿@page "/Competitions"
 @page "/Competition"
 @inject BrewCompDbContext Context
+@using BlazorBootstrap
 
 <h3>Competitions</h3>
 
-@if(_competitions == null)
-{
-    <p><em>Loading Data...</em></p>
-} else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Competition Name</th>
-                <th>Registration Dates</th>
-            </tr>
-        </thead>
-        @foreach(var comp in _competitions)
+<Grid TItem="Competition" class="table table-hover table-bordered table-striped" DataProvider="CompProvider">
+      <GridColumn TItem="Competition" HeaderText="Competition Name" PropertyName="Name" HeaderTextAlignment="Alignment.Center">
+          <a href="Competition/@context.Id">
+            @context.Name
+          </a>
+      </GridColumn>
+      <GridColumn TItem="Competition" HeaderText="Competition Dates" PropertyName="CompetitionDates" HeaderTextAlignment="Alignment.Center">
+        <BlazorTime.ToLocal DateTime=@context.CompetitionDates.StartDate Format="yyyy-mm-dd hh:MM TT"/>
+        @if(context.CompetitionDates.EndDate.HasValue)
         {
-            <tr>
-                <td><a href="/Competition/@comp.Id">@comp.Name</a></td>
-                <td>
-                    <strong>Opens:</strong><BlazorTime.ToLocal DateTime=@comp.CompetitionDates.StartDate Format="yyyy-mm-dd hh:MM TT"/><br />
-                    @if(comp.CompetitionDates.EndDate.HasValue)
-                    {
-                        <strong>Ends: </strong><BlazorTime.ToLocal DateTime=@comp.CompetitionDates.EndDate.Value Format="yyyy-mm-dd hh:MM TT"/>
-                    }
-                </td>
-            </tr>
+            @(" - ") 
+            <BlazorTime.ToLocal DateTime=@context.CompetitionDates.EndDate.Value Format="yyyy-mm-dd hh:MM TT" />
         }
-    </table>
-}
-@code {
-    private Competition[]? _competitions;
+      </GridColumn>
+      <GridColumn TItem="Competition" HeaderText="Entries" HeaderTextAlignment="Alignment.Center">
+          @context.Entries.Count
+      </GridColumn>
+</Grid>
 
-    protected override void OnInitialized()
+@code {
+
+    private async Task<GridDataProviderResult<Competition>> CompProvider (GridDataProviderRequest<Competition> request)
     {
-        base.OnInitialized();
-        _competitions = Context.Competitions.ToArray();
+        return await Task.FromResult(request.ApplyTo(Context.Competitions));
     }
+
 }
