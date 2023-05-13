@@ -5,13 +5,17 @@
 
 <h3>Competitions</h3>
 
-<Grid TItem="Competition" class="table table-hover table-bordered table-striped" DataProvider="CompProvider">
-      <GridColumn TItem="Competition" HeaderText="Competition Name" PropertyName="Name" HeaderTextAlignment="Alignment.Center">
+<Grid TItem="Competition" class="table table-hover table-bordered table-striped" DataProvider="CompProvider"
+      AllowFiltering="true" AllowPaging="true" PageSize="25" AllowSorting="true" Responsive="true">
+    
+      <GridColumn TItem="Competition" HeaderText="Competition Name" PropertyName="Name" 
+          SortString="Name" SortKeySelector="comp => comp.Id" HeaderTextAlignment="Alignment.Center">
           <a href="Competition/@context.Id">
             @context.Name
           </a>
       </GridColumn>
-      <GridColumn TItem="Competition" HeaderText="Competition Dates" PropertyName="CompetitionDates" HeaderTextAlignment="Alignment.Center">
+      <GridColumn TItem="Competition" HeaderText="Competition Dates" PropertyName="CompetitionDates" HeaderTextAlignment="Alignment.Center"
+          Sortable=true>
         <BlazorTime.ToLocal DateTime=@context.CompetitionDates.StartDate Format="yyyy-mm-dd hh:MM TT"/>
         @if(context.CompetitionDates.EndDate.HasValue)
         {
