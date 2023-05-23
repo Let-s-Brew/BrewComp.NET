@@ -9,6 +9,7 @@ public class Competition
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public Guid Id { get; init; }
     public string Name { get; set; } = string.Empty;
+    public decimal EntryCost { get; set; } = 0;
     public int? EntryLimit { get; set; } = null!;
     public DateRange CompetitionDates { get; set; }
     public DateRange? DropOffDates { get; set; } = null!;

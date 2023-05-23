@@ -1,0 +1,89 @@
+﻿@using BlazorBootstrap
+@using System.ComponentModel.DataAnnotations
+
+@namespace BrewComp.Shared
+
+@inject BrewCompDbContext dbContext
+
+<Modal @ref="modal" Title="Add New Competition" UseStaticBackdrop="true" IsScrollable="true" IsVerticallyCentered="true"
+    Fullscreen="ModalFullscreen.LargeDown">
+    <BodyTemplate>
+        <EditForm EditContext="@editContext" OnValidSubmit="@HandleSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="form-group row mb-3">
+                <label class="col-form-label px-2">Competition Name: <span class="text-danger">*</span></label>
+                <InputText class="form-control px-2" @bind-Value="formModel.CompName" />
+            </div>
+            <div class="form-group row mb-3">
+                <DateRangePicker Title="Competition Dates" @bind-Value=formModel.Test />
+            </div>
+        </EditForm>
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="CloseAsync">Cancel</Button>
+        <Button Color="ButtonColor.Primary" Type="ButtonType.Submit">Save</Button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    private Modal modal = default!;
+    protected AddCompForm formModel = new();
+    private EditContext editContext = null!;
+
+    protected override void OnInitialized()
+    {
+        editContext = new(formModel);
+    }
+
+    private async Task HandleSubmit()
+    {
+        /* Competition newComp = new Competition();
+
+         await dbContext.Competitions.AddAsync(newComp);
+         await dbContext.SaveChangesAsync(); */
+        await CloseAsync();
+    }
+
+    public async Task ShowAsync()
+    {
+        await modal.ShowAsync();
+    }
+
+    public async Task CloseAsync()
+    {
+        await modal.HideAsync();
+    }
+
+    public class AddCompForm
+    {
+        [Required(ErrorMessage = "Competition name is required")]
+        [StringLength(255, ErrorMessage = "Competition name is too long")]
+        [RegularExpression("[^();\\*]", ErrorMessage = "These Characters are not allowed in a competition name: (, ), ;, \\, *")]
+        public string? CompName;
+
+        [Required]
+        public DateTime CompStartDate;
+        [Required]
+        public DateTime CompEndDate;
+
+        [Required]
+        public DateTime RegStartDate;
+        public DateTime RegEndDate;
+
+        [Required]
+        public DateTime EntryStartDate;
+        public DateTime EntryEndDate;
+
+        [Required]
+        public DateTime ShipStartDate;
+        public DateTime ShipEndDate;
+
+        [Required]
+        public DateTime DropOffStartDate;
+        public DateTime DropOffEndDate;
+
+        public DateRange Test;
+
+    }
+}

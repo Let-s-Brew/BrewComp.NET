@@ -1,0 +1,68 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using BlazorBootstrap
+
+<div class="form-control">
+    <h6>@(Title + ":")</h6><span class="text-danger">*</span><hr />
+    <div class="row row-cols-2 gx-1" >
+        <div class="col">
+           <label class="form-label">Start Date:</label>
+           <DateInput TValue="DateOnly" Value="_startDate" ValueChanged="(value)=>StartDateChanged(value)"
+               ValueExpression="() => _startDate"/>
+               <TimeInput TValue="TimeOnly" Value="_startTime" ValueExpression="() => _startTime" />
+        </div>
+        <div class="col">
+            <label class="form-label">End Date:</label>
+            <DateInput TValue="DateOnly" @bind-Value="_endDate" EnableMinMax="true" 
+                Min="cutoff" Max="DateOnly.MaxValue"/>
+            <TimeInput TValue="TimeOnly" Value="_endTime" ValueExpression="() => _endTime"
+                EnableMinMax="true" Min="timeCutoff" Max="TimeOnly.MaxValue"/>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = null!;
+
+    [Parameter]
+    public DateRange Value { 
+        get {
+            DateTime start = _startDate.ToDateTime(_startTime).ToUniversalTime();
+            DateTime end = _endDate.ToDateTime(_endTime).ToUniversalTime();
+            if(_range.StartDate != start || _range.EndDate != end)
+            {
+                _range = new DateRange(start, end);
+            }
+            return _range;
+        }
+        set{ _range = value; }
+    }
+
+    [Parameter]
+    public EventCallback<DateRange> ValueChanged { get; set; }
+
+    private DateOnly _startDate = DateOnly.FromDateTime(DateTime.UtcNow);  
+    private DateOnly _endDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(1));
+    private TimeOnly _startTime = TimeOnly.FromDateTime(DateTime.UtcNow);
+    private TimeOnly _endTime = TimeOnly.FromDateTime(DateTime.UtcNow);
+
+    private DateRange _range = new(DateTime.Now, DateTime.Now.AddMonths(1));
+    private DateOnly cutoff = DateOnly.FromDateTime(DateTime.Now);
+    private TimeOnly timeCutoff = TimeOnly.MinValue;
+
+    private void StartDateChanged(DateOnly value)
+    {
+        if (_endDate < value) _endDate = value;
+        cutoff = value;
+
+        if(_endDate == _startDate)
+        {
+            if (_endTime < _startTime) _startTime = _endTime;
+            timeCutoff = _startTime;
+        } else
+        {
+            timeCutoff = TimeOnly.MinValue;
+        }
+    }
+}
+

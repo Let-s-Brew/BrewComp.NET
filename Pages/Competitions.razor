@@ -3,36 +3,64 @@
 @inject BrewCompDbContext Context
 @using BlazorBootstrap
 
-<h3>Competitions</h3>
+<AddCompModal @ref="addCompModal" />
+<div class="vstack gap-lg-2 gap-1">
+    <div><h3>Competitions</h3></div>
 
-<Grid TItem="Competition" class="table table-hover table-bordered table-striped" DataProvider="CompProvider"
-      AllowFiltering="true" AllowPaging="true" PageSize="25" AllowSorting="true" Responsive="true">
+    <div class="bb-top-row align-content-end">
+       <div class="col-auto"><Button Color="ButtonColor.Primary" @onclick="ShowAddCompModal"><Icon Name="IconName.PlusCircle"/> Add</Button></div>
+    </div>
+    <div>
+
+        <Grid TItem="Competition" class="table table-hover table-bordered table-striped" DataProvider="CompProvider"
+              AllowFiltering="true" AllowPaging="true" PageSize="25" AllowSorting="true" Responsive="true">
     
-      <GridColumn TItem="Competition" HeaderText="Competition Name" PropertyName="Name" 
-          SortString="Name" SortKeySelector="comp => comp.Id" HeaderTextAlignment="Alignment.Center">
-          <a href="Competition/@context.Id">
-            @context.Name
-          </a>
-      </GridColumn>
-      <GridColumn TItem="Competition" HeaderText="Competition Dates" PropertyName="CompetitionDates" HeaderTextAlignment="Alignment.Center"
-          Sortable=true>
-        <BlazorTime.ToLocal DateTime=@context.CompetitionDates.StartDate Format="yyyy-mm-dd hh:MM TT"/>
-        @if(context.CompetitionDates.EndDate.HasValue)
-        {
-            @(" - ") 
-            <BlazorTime.ToLocal DateTime=@context.CompetitionDates.EndDate.Value Format="yyyy-mm-dd hh:MM TT" />
-        }
-      </GridColumn>
-      <GridColumn TItem="Competition" HeaderText="Entries" HeaderTextAlignment="Alignment.Center">
-          @context.Entries.Count
-      </GridColumn>
-</Grid>
+              <GridColumn TItem="Competition" HeaderText="Competition Name" PropertyName="Name" 
+                  SortString="Name" SortKeySelector="comp => comp.Id" HeaderTextAlignment="Alignment.Center">
+                  <a href="Competition/@context.Id">
+                    @context.Name
+                  </a>
+              </GridColumn>
+              <GridColumn TItem="Competition" HeaderText="Competition Dates" PropertyName="CompetitionDates" HeaderTextAlignment="Alignment.Center"
+                  Sortable=true SortString="CompetitionDates" SortKeySelector="comp=>comp.CompetitionDates.StartDate">
+                <BlazorTime.ToLocal DateTime=@context.CompetitionDates.StartDate Format="yyyy-mm-dd hh:MM TT"/>
+                @if(context.CompetitionDates.EndDate.HasValue)
+                {
+                    @(" - ") 
+                    <BlazorTime.ToLocal DateTime=@context.CompetitionDates.EndDate.Value Format="yyyy-mm-dd hh:MM TT" />
+                }
+              </GridColumn>
+              <GridColumn TItem="Competition" HeaderText="Entries" HeaderTextAlignment="Alignment.Center" PropertyName="Entries.Count" Sortable=true
+                SortString="Entries" SortKeySelector="comp=>comp.Entries.Count">
+                  @context.Entries.Count
+              </GridColumn>
+              <GridColumn TItem="Competition" HeaderText="Entry Cost" HeaderTextAlignment="Alignment.Center" PropertyName="EntryCost" Sortable=true
+                    SortString="EntryCost" SortKeySelector="comp => comp.EntryCost">
+                  @if(context.EntryCost == 0)
+                {
+                    <p>Free!</p>
+                } else
+                {
+                    // This will use the RegionInfo of the SERVER to display currency value. (Do we want to convert to local user region?)
+                    @context.EntryCost.ToString("C");
+                }
+            </GridColumn>
+        </Grid>
+    </div>
+</div>
 
 @code {
+    private AddCompModal? addCompModal = default!;
 
     private async Task<GridDataProviderResult<Competition>> CompProvider (GridDataProviderRequest<Competition> request)
     {
         return await Task.FromResult(request.ApplyTo(Context.Competitions));
+    }
+
+    private async Task ShowAddCompModal()
+    {
+        if (addCompModal is null) return;
+        await addCompModal.ShowAsync();
     }
 
 }
