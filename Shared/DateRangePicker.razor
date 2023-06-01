@@ -1,67 +1,98 @@
 ﻿@using System.ComponentModel.DataAnnotations
 @using BlazorBootstrap
 
+@inject ILogger<DateRangePicker> _logger
+
 <div class="form-control">
-    <h6>@(Title + ":")</h6><span class="text-danger">*</span><hr />
-    <div class="row row-cols-2 gx-1" >
+    <h6>@(Title + ":")<span class="text-danger"> *</span></h6><hr />
+    <div class="row row-cols-2 gx-3" >
         <div class="col">
-           <label class="form-label">Start Date:</label>
-           <DateInput TValue="DateOnly" Value="_startDate" ValueChanged="(value)=>StartDateChanged(value)"
-               ValueExpression="() => _startDate"/>
-               <TimeInput TValue="TimeOnly" Value="_startTime" ValueExpression="() => _startTime" />
+           <label for="startDate" class="form-label">Start Date:</label>
+           <input type="datetime-local" id="startDate" class="form-control" @bind-value=startDate @bind-value:event="oninput" @onchange="StartDateChanged" />
+
         </div>
         <div class="col">
-            <label class="form-label">End Date:</label>
-            <DateInput TValue="DateOnly" @bind-Value="_endDate" EnableMinMax="true" 
-                Min="cutoff" Max="DateOnly.MaxValue"/>
-            <TimeInput TValue="TimeOnly" Value="_endTime" ValueExpression="() => _endTime"
-                EnableMinMax="true" Min="timeCutoff" Max="TimeOnly.MaxValue"/>
+            <label for="endDate" class="form-label">End Date:</label>
+            <input type="datetime-local" id="endDate" class="form-control" @bind-value=endDate @bind-value:event="oninput" @onchange=EndDateChanged
+                   min="@cutoff"  />
         </div>
     </div>
 </div>
 
 @code {
     [Parameter]
+    public EditContext Context { get; set; } = null!;
+
+    [Parameter]
     public string Title { get; set; } = null!;
 
     [Parameter]
     public DateRange Value { 
         get {
-            DateTime start = _startDate.ToDateTime(_startTime).ToUniversalTime();
-            DateTime end = _endDate.ToDateTime(_endTime).ToUniversalTime();
+            DateTime start = startDate.ToUniversalTime();
+            DateTime end = endDate.ToUniversalTime();
             if(_range.StartDate != start || _range.EndDate != end)
             {
+                _logger.LogInformation($"Creating new DateRange: {start}-{end}");
                 _range = new DateRange(start, end);
             }
             return _range;
         }
-        set{ _range = value; }
+        set {
+            if (_range == value) return;
+            _range = value;
+            ValueChanged.InvokeAsync(value);
+        }
     }
 
     [Parameter]
     public EventCallback<DateRange> ValueChanged { get; set; }
 
-    private DateOnly _startDate = DateOnly.FromDateTime(DateTime.UtcNow);  
-    private DateOnly _endDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(1));
-    private TimeOnly _startTime = TimeOnly.FromDateTime(DateTime.UtcNow);
-    private TimeOnly _endTime = TimeOnly.FromDateTime(DateTime.UtcNow);
+    [Required]
+    private DateTime startDate { get; set; } = DateTime.Now;
+    [Required]
+    private DateTime endDate { get; set; } = DateTime.Now.AddMonths(1);
 
-    private DateRange _range = new(DateTime.Now, DateTime.Now.AddMonths(1));
-    private DateOnly cutoff = DateOnly.FromDateTime(DateTime.Now);
-    private TimeOnly timeCutoff = TimeOnly.MinValue;
+    private DateRange _range = default!;
+    private string cutoff => startDate.ToString("s");
 
-    private void StartDateChanged(DateOnly value)
+    private void StartDateChanged(ChangeEventArgs args)
     {
-        if (_endDate < value) _endDate = value;
-        cutoff = value;
+        if(DateTime.TryParse(args?.Value?.ToString(), out var date))
+        {
+            startDate = date;
 
-        if(_endDate == _startDate)
+            if(endDate <= date ) // Moved starting date beyond what endDate was
+            {
+                if(endDate.TimeOfDay < date.TimeOfDay)
+                {
+                    //Need to move time forward to match new date's time
+                    endDate = date;
+                } else
+                {
+                    //Can leave time the same and just have to change the date
+                    endDate = date.Date.Add(endDate.TimeOfDay);
+                }
+            }
+            ValueChanged.InvokeAsync(this.Value);
+        }
+    }
+
+    private void EndDateChanged(ChangeEventArgs args)
+    {
+        if (DateTime.TryParse(args?.Value?.ToString(), out var date))
         {
-            if (_endTime < _startTime) _startTime = _endTime;
-            timeCutoff = _startTime;
-        } else
-        {
-            timeCutoff = TimeOnly.MinValue;
+            endDate = date;
+            if(endDate.Date == startDate.Date)
+            {
+                //now on same day, need to check times
+                if(endDate.TimeOfDay <= startDate.TimeOfDay)
+                {
+                    // Match them up
+                    endDate = startDate;
+                }
+            }
+            ValueChanged.InvokeAsync(this.Value);
         }
     }
 }
