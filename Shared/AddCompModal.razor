@@ -4,11 +4,12 @@
 @namespace BrewComp.Shared
 
 @inject BrewCompDbContext dbContext
+@inject ILogger<Program> _logger
 
 <Modal @ref="modal" Title="Add New Competition" UseStaticBackdrop="true" IsScrollable="true" IsVerticallyCentered="true"
     Fullscreen="ModalFullscreen.LargeDown">
     <BodyTemplate>
-        <EditForm EditContext="@editContext" OnValidSubmit="@HandleSubmit">
+        <EditForm EditContext="@editContext" OnValidSubmit="@HandleSubmit" id="addCompForm">
             <DataAnnotationsValidator />
             <ValidationSummary />
             <div class="form-group row mb-3">
@@ -16,13 +17,29 @@
                 <InputText class="form-control px-2" @bind-Value="formModel.CompName" />
             </div>
             <div class="form-group row mb-3">
-                <DateRangePicker Title="Competition Dates" @bind-Value=formModel.Test />
+                <DateRangePicker Title="Competition Dates" Context="@editContext" @bind-Value=formModel.CompDates Required="true" />
+            </div>
+            <div class="form-group row mb-3">
+                <DateRangePicker Title="Registration Dates" Context="@editContext" @bind-Value=formModel.RegDates Required="true" />
+            </div>
+            <div class="form-group row mb-3">
+                <DateRangePicker Title="Entry Registration/Modification Dates" Context="@editContext" @bind-Value=formModel.EntryDates Required="true" />
+            </div>
+            <div class="form-group row mb-3">
+                <DateRangePicker Title="Shipping Window Dates" Context="@editContext" @bind-Value=formModel.ShipDates Required="true" />
+            </div>
+            <div class="form-group row mb-3">
+                <DateRangePicker Title="Drop-Off Dates" Context="@editContext" @bind-Value=formModel.DropOffDates @ref=_picker Required="true"/>
+                <label>
+                    <InputCheckbox @oninput="UpdateShipDropWindow" ValueExpression="()=>formModel.ShipDropSame" />Use Same Dates as Shipping Window
+                </label>
             </div>
         </EditForm>
     </BodyTemplate>
     <FooterTemplate>
         <Button Color="ButtonColor.Secondary" @onclick="CloseAsync">Cancel</Button>
-        <Button Color="ButtonColor.Primary" Type="ButtonType.Submit">Save</Button>
+        <Button Color="ButtonColor.Primary" Type="ButtonType.Submit" form="addCompForm">Save</Button>
+       
     </FooterTemplate>
 </Modal>
 
@@ -30,6 +47,7 @@
     private Modal modal = default!;
     protected AddCompForm formModel = new();
     private EditContext editContext = null!;
+    private DateRangePicker _picker = null!;
 
     protected override void OnInitialized()
     {
@@ -38,11 +56,14 @@
 
     private async Task HandleSubmit()
     {
+        _logger.LogInformation($"CompName: {formModel.CompName}" );
+        _logger.LogInformation($"CompDates: {formModel.CompDates}");
+
         /* Competition newComp = new Competition();
 
          await dbContext.Competitions.AddAsync(newComp);
          await dbContext.SaveChangesAsync(); */
-        await CloseAsync();
+        //await CloseAsync();
     }
 
     public async Task ShowAsync()
@@ -55,35 +76,29 @@
         await modal.HideAsync();
     }
 
+    private void UpdateShipDropWindow(ChangeEventArgs args)
+    {
+        _logger.LogInformation($"{args} / {args.Value}");
+        _picker.Enabled = !((bool)args.Value);
+    }
+
     public class AddCompForm
     {
         [Required(ErrorMessage = "Competition name is required")]
-        [StringLength(255, ErrorMessage = "Competition name is too long")]
-        [RegularExpression("[^();\\*]", ErrorMessage = "These Characters are not allowed in a competition name: (, ), ;, \\, *")]
-        public string? CompName;
+        //[StringLength(255, MinimumLength = 3, ErrorMessage = "Competition name must be between 3 and 255 Characters")]
+        [RegularExpression(@"^[\w \-&!@$#,.]{3,254}$", ErrorMessage="Competition name must be between 3 and 254 Characters, containing only Letters, Numbers, Spaces, or these characters: !@#$,.-_")]
+        internal string CompName { get; set; } = null!;
 
         [Required]
-        public DateTime CompStartDate;
+        internal DateRange CompDates { get; set; }
         [Required]
-        public DateTime CompEndDate;
-
+        internal DateRange RegDates { get; set; }
         [Required]
-        public DateTime RegStartDate;
-        public DateTime RegEndDate;
-
+        internal DateRange EntryDates { get; set; }
         [Required]
-        public DateTime EntryStartDate;
-        public DateTime EntryEndDate;
+        internal DateRange ShipDates { get; set; }
+        internal DateRange DropOffDates { get; set; }
 
-        [Required]
-        public DateTime ShipStartDate;
-        public DateTime ShipEndDate;
-
-        [Required]
-        public DateTime DropOffStartDate;
-        public DateTime DropOffEndDate;
-
-        public DateRange Test;
-
+        internal bool ShipDropSame { get; set; } = false;
     }
 }

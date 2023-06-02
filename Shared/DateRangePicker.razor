@@ -4,17 +4,24 @@
 @inject ILogger<DateRangePicker> _logger
 
 <div class="form-control">
-    <h6>@(Title + ":")<span class="text-danger"> *</span></h6><hr />
+    <h6>@(
+            Title + ":"
+            )@if (Required && Enabled)
+        {
+            <span class="text-danger"> *</span>
+        }
+    </h6><hr />
     <div class="row row-cols-2 gx-3" >
         <div class="col">
            <label for="startDate" class="form-label">Start Date:</label>
-           <input type="datetime-local" id="startDate" class="form-control" @bind-value=startDate @bind-value:event="oninput" @onchange="StartDateChanged" />
+           <input type="datetime-local" id="startDate" class="form-control" @bind-value=startDate @bind-value:event="oninput" @onchange="StartDateChanged" 
+                disabled="@(!Enabled)" step="60"/>
 
         </div>
         <div class="col">
             <label for="endDate" class="form-label">End Date:</label>
             <input type="datetime-local" id="endDate" class="form-control" @bind-value=endDate @bind-value:event="oninput" @onchange=EndDateChanged
-                   min="@cutoff"  />
+                   min="@cutoff" disabled="@(!Enabled)" step="60"/>
         </div>
     </div>
 </div>
@@ -26,6 +33,8 @@
     [Parameter]
     public string Title { get; set; } = null!;
 
+    private DateRange _range = default!;
+
     [Parameter]
     public DateRange Value { 
         get {
@@ -33,7 +42,7 @@
             DateTime end = endDate.ToUniversalTime();
             if(_range.StartDate != start || _range.EndDate != end)
             {
-                _logger.LogInformation($"Creating new DateRange: {start}-{end}");
+                _logger.LogInformation($"Creating new DateRange: {start}-{end} (UTC)");
                 _range = new DateRange(start, end);
             }
             return _range;
@@ -49,12 +58,16 @@
     public EventCallback<DateRange> ValueChanged { get; set; }
 
     [Required]
-    private DateTime startDate { get; set; } = DateTime.Now;
+    private DateTime startDate { get; set; } = DateTime.Today;
     [Required]
-    private DateTime endDate { get; set; } = DateTime.Now.AddMonths(1);
+    private DateTime endDate { get; set; } = DateTime.Today.AddMonths(1);
 
-    private DateRange _range = default!;
     private string cutoff => startDate.ToString("s");
+
+    [Parameter]
+    public bool Required { get; set; } = false;
+
+    public bool Enabled { get; set; } = true;
 
     private void StartDateChanged(ChangeEventArgs args)
     {
