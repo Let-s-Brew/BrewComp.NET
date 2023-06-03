@@ -14,7 +14,7 @@
   <ItemGroup>
     <PackageReference Include="Blazor.Bootstrap" Version="1.7.3" />
     <PackageReference Include="BlazorTime" Version="1.0.3" />
-    <PackageReference Include="BrewCode.AddressTools" Version="1.0.1" />
+    <PackageReference Include="BrewCode.AddressTools" Version="1.0.2" />
     <PackageReference Include="BrewCode.BrewGuide" Version="1.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.15" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.15" />
