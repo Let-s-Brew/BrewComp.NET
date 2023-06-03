@@ -3,7 +3,7 @@
 
 @inject ILogger<DateRangePicker> _logger
 
-<div class="form-control">
+<div class="form-group mb-3">
     <h6>@(
             Title + ":"
             )@if (Required && Enabled)
@@ -57,9 +57,7 @@
     [Parameter]
     public EventCallback<DateRange> ValueChanged { get; set; }
 
-    [Required]
     private DateTime startDate { get; set; } = DateTime.Today;
-    [Required]
     private DateTime endDate { get; set; } = DateTime.Today.AddMonths(1);
 
     private string cutoff => startDate.ToString("s");

@@ -22,6 +22,7 @@ public class Competition
     public List<CivicAddress> DropOffAddresses { get; set; } = new();
     public List<Sponsor> Sponsors { get; set; } = new();
     public bool BJCPSanctioned { get; set; } = false;
+    public string? BJCPId { get; set; } = null!;
     /// <summary>
     /// Holds a mapping of the <c cref="CompetitionEntry.EntryId">EntryId</c> of a <c cref="CompetitionEntry">CompetitionEntry</c>
     /// to the Judging ID that will be filled in on the judging sheets. These judging numbers are used to ensure anonyminity of the

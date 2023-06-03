@@ -1,4 +1,5 @@
-﻿@using BlazorBootstrap
+﻿@using BrewCode.AddressTools.Models
+@using BlazorBootstrap
 @using System.ComponentModel.DataAnnotations
 
 @namespace BrewComp.Shared
@@ -7,32 +8,64 @@
 @inject ILogger<Program> _logger
 
 <Modal @ref="modal" Title="Add New Competition" UseStaticBackdrop="true" IsScrollable="true" IsVerticallyCentered="true"
-    Fullscreen="ModalFullscreen.LargeDown">
+    Fullscreen="ModalFullscreen.LargeDown" Size="ModalSize.Large">
     <BodyTemplate>
         <EditForm EditContext="@editContext" OnValidSubmit="@HandleSubmit" id="addCompForm">
             <DataAnnotationsValidator />
             <ValidationSummary />
-            <div class="form-group row mb-3">
-                <label class="col-form-label px-2">Competition Name: <span class="text-danger">*</span></label>
-                <InputText class="form-control px-2" @bind-Value="formModel.CompName" />
+            <div class="form-group form-control row mb-3">
+                <label class="col-form-label">Competition Name: <span class="text-danger">*</span></label>
+                <InputText @bind-Value="formModel.CompName" />
             </div>
-            <div class="form-group row mb-3">
+            <div class="form-control row mb-3">
                 <DateRangePicker Title="Competition Dates" Context="@editContext" @bind-Value=formModel.CompDates Required="true" />
             </div>
-            <div class="form-group row mb-3">
+            <div class="form-control row mb-3">
                 <DateRangePicker Title="Registration Dates" Context="@editContext" @bind-Value=formModel.RegDates Required="true" />
             </div>
-            <div class="form-group row mb-3">
+            <div class="form-control row mb-3">
                 <DateRangePicker Title="Entry Registration/Modification Dates" Context="@editContext" @bind-Value=formModel.EntryDates Required="true" />
             </div>
-            <div class="form-group row mb-3">
+            <div class="form-control row mb-3">
                 <DateRangePicker Title="Shipping Window Dates" Context="@editContext" @bind-Value=formModel.ShipDates Required="true" />
             </div>
-            <div class="form-group row mb-3">
-                <DateRangePicker Title="Drop-Off Dates" Context="@editContext" @bind-Value=formModel.DropOffDates @ref=_picker Required="true"/>
-                <label>
-                    <InputCheckbox @oninput="UpdateShipDropWindow" ValueExpression="()=>formModel.ShipDropSame" />Use Same Dates as Shipping Window
+            <div class="form-control row mb-3">
+                <DateRangePicker Title="Drop-Off Dates" Context="@editContext" @bind-Value=formModel.DropOffDates @ref=_picker Required="true" />
+                <label class="form-label">
+                    <InputCheckbox @oninput="UpdateShipDropWindow" ValueExpression="()=>formModel.ShipDropSame" /> Use Same Dates as Shipping Window
                 </label>
+            </div>
+            <div class="mb-3 row form-control">
+                <div class="form-group row gx-3 row-cols-2">
+                    <div class="col">
+                        <label class="form-label">Entry Fee</label>
+                        <CurrencyInput TValue="decimal?" @bind-Value=formModel.EntryFee Placeholder="Entry Fee Amount" MaximumFractionDigits="2"
+                                       Locale=@System.Globalization.CultureInfo.CurrentCulture.Name />
+                        <span class="form-text">Leave blank or use 0 to have no fee.</span>
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Entry Limit</label>
+                        <NumberInput TValue="int?" Placeholder="Entry Limit Amount" @bind-Value=formModel.EntryCap />
+                        <span class="form-text">Leave blank or use 0 to have no limit.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-control form-group row mb-3">
+                <label class="form-label-row">Shipping/Drop-off Addresses</label>
+                <AddressListView CanEdit=true Data="@formModel.DropOffLocations" />
+
+            </div>
+            <div class="form-control form-group row mb-3">
+                <label class="col-form-label"><InputCheckbox @bind-Value=formModel.BJCPSanction /> BJCP Sanctioned?</label>
+                <label class="col-form-label">
+                    BJCP Competition Id
+                    @if (formModel.BJCPSanction)
+                    {
+                        <span class="text-danger"> *</span>
+                    }
+                </label>
+                <InputText @bind-Value=formModel.BJCPId required="@formModel.BJCPSanction" DisplayName="BJCP Competition ID"
+                           disabled="@(!formModel.BJCPSanction)" />
             </div>
         </EditForm>
     </BodyTemplate>
@@ -56,14 +89,20 @@
 
     private async Task HandleSubmit()
     {
-        _logger.LogInformation($"CompName: {formModel.CompName}" );
-        _logger.LogInformation($"CompDates: {formModel.CompDates}");
-
-        /* Competition newComp = new Competition();
-
-         await dbContext.Competitions.AddAsync(newComp);
-         await dbContext.SaveChangesAsync(); */
-        //await CloseAsync();
+        Competition newComp = new Competition()
+            {
+                Name = formModel.CompName,
+                CompetitionDates = formModel.CompDates,
+                RegistrationDates = formModel.RegDates,
+                EntryRegistrationDates = formModel.EntryDates,
+                ShippingDates = formModel.ShipDates,
+                DropOffDates = formModel.ShipDropSame ? formModel.ShipDates : formModel.DropOffDates,
+                EntryCost = formModel.EntryFee ?? 0,
+                EntryLimit = formModel.EntryCap ?? 0
+            };
+        await dbContext.Competitions.AddAsync(newComp);
+        await dbContext.SaveChangesAsync(); 
+        await CloseAsync();
     }
 
     public async Task ShowAsync()
@@ -84,21 +123,29 @@
 
     public class AddCompForm
     {
+        internal const string CompNameRegEx = @"^[\w \-&!@$#,.]{3,254}$";
         [Required(ErrorMessage = "Competition name is required")]
         //[StringLength(255, MinimumLength = 3, ErrorMessage = "Competition name must be between 3 and 255 Characters")]
-        [RegularExpression(@"^[\w \-&!@$#,.]{3,254}$", ErrorMessage="Competition name must be between 3 and 254 Characters, containing only Letters, Numbers, Spaces, or these characters: !@#$,.-_")]
-        internal string CompName { get; set; } = null!;
+        [RegularExpression(pattern: CompNameRegEx, ErrorMessage="Competition name must be between 3 and 254 Characters, containing only Letters, Numbers, Spaces, or these characters: !@#$,.-_")]
+        public string CompName { get; set; } = null!;
 
         [Required]
-        internal DateRange CompDates { get; set; }
+        public DateRange CompDates { get; set; }
         [Required]
-        internal DateRange RegDates { get; set; }
+        public DateRange RegDates { get; set; }
         [Required]
-        internal DateRange EntryDates { get; set; }
+        public DateRange EntryDates { get; set; }
         [Required]
-        internal DateRange ShipDates { get; set; }
-        internal DateRange DropOffDates { get; set; }
+        public DateRange ShipDates { get; set; }
+        public DateRange DropOffDates { get; set; }
 
-        internal bool ShipDropSame { get; set; } = false;
+        public List<CivicAddress> DropOffLocations { get; set; } = new();
+
+        public bool ShipDropSame { get; set; } = false;
+        public bool BJCPSanction { get; set; } = false;
+        public string? BJCPId { get; set; } = null!;
+
+        public decimal? EntryFee { get; set; } = null!;
+        public int? EntryCap { get; set; } = null!;
     }
 }
