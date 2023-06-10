@@ -8,7 +8,7 @@
 @inject ILogger<Program> _logger
 
 <Modal @ref="modal" Title="Add New Competition" UseStaticBackdrop="true" IsScrollable="true" IsVerticallyCentered="true"
-    Fullscreen="ModalFullscreen.LargeDown" Size="ModalSize.Large">
+    Fullscreen="ModalFullscreen.LargeDown" Size="ModalSize.Large" OnHiding="OnHide">
     <BodyTemplate>
         <EditForm EditContext="@editContext" OnValidSubmit="@HandleSubmit" id="addCompForm">
             <DataAnnotationsValidator />
@@ -82,6 +82,9 @@
     private EditContext editContext = null!;
     private DateRangePicker _picker = null!;
 
+    [Parameter]
+    public EventCallback OnHide { get; set; }
+
     protected override void OnInitialized()
     {
         editContext = new(formModel);
@@ -98,7 +101,8 @@
                 ShippingDates = formModel.ShipDates,
                 DropOffDates = formModel.ShipDropSame ? formModel.ShipDates : formModel.DropOffDates,
                 EntryCost = formModel.EntryFee ?? 0,
-                EntryLimit = formModel.EntryCap ?? 0
+                EntryLimit = formModel.EntryCap ?? 0,
+                DropOffAddresses = formModel.DropOffLocations
             };
         await dbContext.Competitions.AddAsync(newComp);
         await dbContext.SaveChangesAsync(); 
