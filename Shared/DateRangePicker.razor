@@ -14,13 +14,13 @@
     <div class="row row-cols-2 gx-3" >
         <div class="col">
            <label for="startDate" class="form-label">Start Date:</label>
-           <input type="datetime-local" id="startDate" class="form-control" @bind-value=startDate @bind-value:event="oninput" @onchange="StartDateChanged" 
+           <input type="datetime-local" id="startDate" class="form-control" @bind-Value=startDate @bind-Value:event="oninput" @onchange="StartDateChanged" 
                 disabled="@(!Enabled)" step="60"/>
 
         </div>
         <div class="col">
             <label for="endDate" class="form-label">End Date:</label>
-            <input type="datetime-local" id="endDate" class="form-control" @bind-value=endDate @bind-value:event="oninput" @onchange=EndDateChanged
+            <input type="datetime-local" id="endDate" class="form-control" @bind-Value=endDate @bind-Value:event="oninput" @onchange=EndDateChanged
                    min="@cutoff" disabled="@(!Enabled)" step="60"/>
         </div>
     </div>

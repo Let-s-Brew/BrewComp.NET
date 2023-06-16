@@ -44,13 +44,15 @@
 
             <GridColumn TItem="Competition" Filterable=false Sortable=false>
                 <HeaderContent>
+                    <div class="d-flex justify-content-end">
                         <Button Color="ButtonColor.Primary" @onclick="ShowAddCompModal"><Icon Name="IconName.PlusCircle" /> Add</Button>
+                    </div>
                 </HeaderContent>
                 <ChildContent Context="row">
                     @if(context.User.IsInRole("siteadmin") || context.User.HasClaim("CompCoordinator", row.Id.ToString()))
                     {
-                        <div class="px-2 justify-content-end">
-                            <Button Color="ButtonColor.Secondary" Size="Size.Small"><Icon Name=IconName.PencilFill/></Button> 
+                        <div class="d-flex justify-content-end">
+                            <Button Color="ButtonColor.Secondary" Size="Size.Small" Class="mx-2"><Icon Name=IconName.PencilFill/></Button> 
                             <Button Color="ButtonColor.Danger" Size="Size.Small" @onclick="()=>RemoveComp(row)"><Icon Name="IconName.TrashFill" /></Button>
                         </div>
                     }

@@ -77,10 +77,12 @@
 </Modal>
 
 @code {
+    private Competition? _editComp;
     private Modal modal = default!;
     protected AddCompForm formModel = new();
     private EditContext editContext = null!;
     private DateRangePicker _picker = null!;
+    private bool _editMode => _editComp is not null;
 
     [Parameter]
     public EventCallback OnHide { get; set; }
@@ -92,7 +94,9 @@
 
     private async Task HandleSubmit()
     {
-        Competition newComp = new Competition()
+        if(_editMode)
+        {
+            Competition newComp = new Competition()
             {
                 Name = formModel.CompName,
                 CompetitionDates = formModel.CompDates,
@@ -102,15 +106,37 @@
                 DropOffDates = formModel.ShipDropSame ? formModel.ShipDates : formModel.DropOffDates,
                 EntryCost = formModel.EntryFee ?? 0,
                 EntryLimit = formModel.EntryCap ?? 0,
-                DropOffAddresses = formModel.DropOffLocations
+                DropOffAddresses = new List<CivicAddress>(formModel.DropOffLocations)
             };
-        await dbContext.Competitions.AddAsync(newComp);
+            await dbContext.Competitions.AddAsync(newComp);
+        } else
+        {
+            if (_editComp is null) return; // This should never happen
+            dbContext.Update<Competition>(_editComp); //Flag begin track updates
+            _editComp.Name = formModel.CompName;
+            _editComp.CompetitionDates = formModel.CompDates;
+            _editComp.RegistrationDates = formModel.RegDates;
+            _editComp.EntryRegistrationDates = formModel.EntryDates;
+            _editComp.ShippingDates = formModel.ShipDates;
+            _editComp.DropOffDates = formModel.ShipDropSame ? formModel.ShipDates : formModel.DropOffDates;
+            _editComp.EntryCost = formModel.EntryFee ?? 0;
+            _editComp.EntryLimit = formModel.EntryCap ?? 0;
+            _editComp.DropOffAddresses = new List<CivicAddress>(formModel.DropOffLocations);
+        }
+
         await dbContext.SaveChangesAsync(); 
         await CloseAsync();
     }
 
     public async Task ShowAsync()
     {
+        await modal.ShowAsync();
+    }
+
+    public async Task ShowAsync(Competition toEdit)
+    {
+        _editComp = toEdit;
+        formModel.UpdateDataFromComp(_editComp);
         await modal.ShowAsync();
     }
 
@@ -151,5 +177,28 @@
 
         public decimal? EntryFee { get; set; } = null!;
         public int? EntryCap { get; set; } = null!;
+
+        public void UpdateDataFromComp(Competition data)
+        {
+            CompName = data.Name;
+            CompDates = data.CompetitionDates;
+            if(data.RegistrationDates.HasValue)
+                RegDates = data.RegistrationDates.Value;
+            if(data.EntryRegistrationDates.HasValue)
+                EntryDates = data.EntryRegistrationDates.Value;
+            if(data.ShippingDates.HasValue)
+                ShipDates = data.ShippingDates.Value;
+            if (data.DropOffDates.HasValue)
+                DropOffDates = data.DropOffDates.Value;
+            ShipDropSame = ShipDates == DropOffDates;
+
+            DropOffLocations = new List<CivicAddress>(data.DropOffAddresses); //Will copy data to new object.
+            
+            BJCPSanction = data.BJCPSanctioned;
+            if (BJCPSanction) BJCPId = data.BJCPId;
+            
+            EntryFee = data.EntryCost;
+            EntryCap = data.EntryLimit;
+        }
     }
 }
