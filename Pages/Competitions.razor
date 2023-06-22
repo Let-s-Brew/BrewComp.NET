@@ -1,76 +1,33 @@
 ﻿@page "/Competitions"
 @page "/Competition"
 @inject BrewCompDbContext DBContext
-@using BlazorBootstrap
 
-<AddCompModal @ref="addCompModal" OnHide="UpdateGrid"/>
 <div class="vstack gap-lg-2 gap-1">
     <div><h3>Competitions</h3></div>
-
-    <Grid @ref=grid TItem="Competition" class="table table-hover table-bordered table-striped" DataProvider="CompProvider"
-            AllowFiltering="true" AllowPaging="true" PageSize="25" AllowSorting="true" Responsive="true">
-    
-            <GridColumn TItem="Competition" HeaderText="Competition Name" PropertyName="Name" 
-                SortString="Name" SortKeySelector="comp => comp.Id" HeaderTextAlignment="Alignment.Center">
-                <a href="Competition/@context.Id">
-                @context.Name
-                </a>
-            </GridColumn>
-            <GridColumn TItem="Competition" HeaderText="Competition Dates" PropertyName="CompetitionDates" HeaderTextAlignment="Alignment.Center"
-                Sortable=true SortString="CompetitionDates" SortKeySelector="comp=>comp.CompetitionDates.StartDate">
-            <BlazorTime.ToLocal DateTime=@context.CompetitionDates.StartDate Format="yyyy-mm-dd hh:MM TT"/>
-            @if(context.CompetitionDates.EndDate.HasValue)
-            {
-                @(" - ") 
-                <BlazorTime.ToLocal DateTime=@context.CompetitionDates.EndDate.Value Format="yyyy-mm-dd hh:MM TT" />
-            }
-            </GridColumn>
-            <GridColumn TItem="Competition" HeaderText="Entries" HeaderTextAlignment="Alignment.Center" PropertyName="Entries.Count" Sortable=true
-            SortString="Entries" SortKeySelector="comp=>comp.Entries.Count">
-                @context.Entries.Count
-            </GridColumn>
-            <GridColumn TItem="Competition" HeaderText="Entry Cost" HeaderTextAlignment="Alignment.Center" PropertyName="EntryCost" Sortable=true
-                SortString="EntryCost" SortKeySelector="comp => comp.EntryCost">
-                @if(context.EntryCost == 0)
-            {
-                <p>Free!</p>
-            } else
-            {
-                // This will use the RegionInfo of the SERVER to display currency value. (Do we want to convert to local user region?)
-                @context.EntryCost.ToString("C");
-            }
-        </GridColumn>
-        <AuthorizeView Roles="siteadmin, coordinator">
-
-            <GridColumn TItem="Competition" Filterable=false Sortable=false>
-                <HeaderContent>
-                    <div class="d-flex justify-content-end">
-                        <Button Color="ButtonColor.Primary" @onclick="ShowAddCompModal"><Icon Name="IconName.PlusCircle" /> Add</Button>
-                    </div>
-                </HeaderContent>
-                <ChildContent Context="row">
-                    @if(context.User.IsInRole("siteadmin") || context.User.HasClaim("CompCoordinator", row.Id.ToString()))
-                    {
-                        <div class="d-flex justify-content-end">
-                            <Button Color="ButtonColor.Secondary" Size="Size.Small" Class="mx-2"><Icon Name=IconName.PencilFill/></Button> 
-                            <Button Color="ButtonColor.Danger" Size="Size.Small" @onclick="()=>RemoveComp(row)"><Icon Name="IconName.TrashFill" /></Button>
-                        </div>
-                    }
-                </ChildContent>
-            </GridColumn>
-        </AuthorizeView>
-    </Grid>
+    <MudDataGrid Items="@DBContext.Competitions" Filterable=true >
+        <Columns>
+            <PropertyColumn Property="c=>c.Name" Title="Competition Name"/>
+            <PropertyColumn Property="c=>c.Entries.Count" Title="Entries"/>
+            <PropertyColumn Property="c=>c.EntryLimit"/>
+            <PropertyColumn Property="c=>c.EntryCost" Format="C"/>
+            <TemplateColumn Title="Competition Dates">
+                <CellTemplate>
+                    <MudStack>
+                        <div><strong>Starts: </strong><BlazorTime.ToLocal DateTime=@context.Item.CompetitionDates.StartDate Format="yyyy-mm-dd hh:MM TT"/></div>
+                        @if(context.Item.CompetitionDates.EndDate.HasValue)
+                        {
+                            <div><strong>Ends: </strong><BlazorTime.ToLocal DateTime=@context.Item.CompetitionDates.EndDate.Value Format="yyyy-mm-dd hh:MM TT" /></div>
+                        }
+                    </MudStack>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+    </MudDataGrid>
 </div>
 
 
 @code {
     private AddCompModal? addCompModal = default!;
-    private Grid<Competition>? grid = default!;
-
-    private async Task<GridDataProviderResult<Competition>> CompProvider (GridDataProviderRequest<Competition> request)
-    {
-        return await Task.FromResult(request.ApplyTo(DBContext.Competitions));
-    }
 
     private async Task ShowAddCompModal()
     {
@@ -78,17 +35,10 @@
         await addCompModal.ShowAsync();
     }
 
-    private async Task UpdateGrid()
-    {
-        if (grid is not null)
-            await grid.RefreshDataAsync();
-    }
-
     private async Task RemoveComp(Competition comp)
     {
         DBContext.Remove(comp);
         await DBContext.SaveChangesAsync();
-        await UpdateGrid();
     }
 
 }
