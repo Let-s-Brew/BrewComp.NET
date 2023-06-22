@@ -29,12 +29,6 @@
 @code {
     private AddCompModal? addCompModal = default!;
 
-    private async Task ShowAddCompModal()
-    {
-        if (addCompModal is null) return;
-        await addCompModal.ShowAsync();
-    }
-
     private async Task RemoveComp(Competition comp)
     {
         DBContext.Remove(comp);
