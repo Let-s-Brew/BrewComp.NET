@@ -2,31 +2,46 @@
 @page "/Competition"
 @inject BrewCompDbContext DBContext
 
-<div class="vstack gap-lg-2 gap-1">
+<MudStack Spacing=2>
     <div><h3>Competitions</h3></div>
-    <MudDataGrid Items="@DBContext.Competitions" Filterable=true >
+    <MudDataGrid Items=@DBContext.Competitions Filterable=true ReadOnly=@_readOnly EditMode=@DataGridEditMode.Form RowsPerPage="25">
         <Columns>
+            <HierarchyColumn T=Competition/>
             <PropertyColumn Property="c=>c.Name" Title="Competition Name"/>
-            <PropertyColumn Property="c=>c.Entries.Count" Title="Entries"/>
-            <PropertyColumn Property="c=>c.EntryLimit"/>
-            <PropertyColumn Property="c=>c.EntryCost" Format="C"/>
-            <TemplateColumn Title="Competition Dates">
+            <TemplateColumn Title="Entries">
                 <CellTemplate>
-                    <MudStack>
-                        <div><strong>Starts: </strong><BlazorTime.ToLocal DateTime=@context.Item.CompetitionDates.StartDate Format="yyyy-mm-dd hh:MM TT"/></div>
-                        @if(context.Item.CompetitionDates.EndDate.HasValue)
-                        {
-                            <div><strong>Ends: </strong><BlazorTime.ToLocal DateTime=@context.Item.CompetitionDates.EndDate.Value Format="yyyy-mm-dd hh:MM TT" /></div>
-                        }
-                    </MudStack>
+                    @(context.Item.Entries.Count == 0 ? "None" : context.Item.Entries.Count)
                 </CellTemplate>
             </TemplateColumn>
+            <TemplateColumn Title="Entry Limit">
+                <CellTemplate>
+                    @(context.Item.EntryLimit == null || context.Item.EntryLimit <= 0 ? "No Entry Limit" : context.Item.EntryLimit)
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="c=>c.EntryCost" Format="C"/>
+            <PropertyColumn Property="c=>c.CompetitionDates.StartDate" Format="yyyy-mm-dd" Title="Start Date"/>
         </Columns>
+        <ChildRowContent>
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">@context.Item.Name</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <div>Extra Comp Details will appear here</div>
+                </MudCardContent>
+            </MudCard>
+        </ChildRowContent>
+        <PagerContent>
+            <MudDataGridPager T="Competition"/>
+        </PagerContent>
     </MudDataGrid>
-</div>
+</MudStack>
 
 
 @code {
+    private bool _readOnly = false;
     private AddCompModal? addCompModal = default!;
 
     private async Task RemoveComp(Competition comp)
