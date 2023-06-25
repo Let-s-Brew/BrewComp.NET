@@ -6,6 +6,66 @@
 @inject BrewCompDbContext dbContext
 @inject ILogger<Program> _logger
 
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Quick Add</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref=_form @bind-IsValid=_isValid>
+            <MudTextField For="()=>_model.CompName" @bind-Value=_model.CompName/>
+            <MudNumericField For="()=>_model.EntryFee" @bind-Value=_model.EntryFee Variant="Variant.Outlined" Min="0.0M" Format="C"/>
+            <MudNumericField For="()=>_model.EntryCap" @bind-Value=_model.EntryCap Variant="Variant.Outlined" Min="0"/>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Surface" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled=!_isValid>Add</MudButton>
+    </DialogActions>
+</MudDialog>
+
 @code {
-  // TODO
+    [CascadingParameter]
+    MudDialogInstance Dialog { get; set; } = default!;
+
+    private QuickAddModel _model = new();
+    private MudForm? _form = null!;
+    private bool _isValid;
+
+    private void Cancel()
+    {
+        _model = new();
+        Dialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        if (_form is null) return; // Should never be true
+
+        await _form.Validate();
+        if (!_form.IsValid) return; // Should not close form?
+
+        var newComp = new Competition()
+        {
+            Name = _model.CompName,
+            EntryCost = _model.EntryFee.HasValue ? _model.EntryFee.Value : 0.0M,
+            EntryLimit = _model.EntryCap.HasValue ? _model.EntryCap.Value : 0
+        };
+        Dialog.Close(DialogResult.Ok(newComp));
+    }
+
+    protected class QuickAddModel
+    {
+        [Required]
+        [Label("Competition Name")]
+        [RegularExpression(pattern: @"^[\w \-&!@$#,.]{3,254}$", 
+            ErrorMessage = "Competition name must be between 3 and 254 Characters, containing only Letters, Numbers, Spaces, or these characters: !@#$,.-_")]
+        public string CompName { get; set; } = null!;
+
+        [Label("Competition Entry Fee")]
+        public decimal? EntryFee { get; set; } 
+
+        [Label("Competition Entries Limit")]
+        public int? EntryCap { get; set; }
+
+    }
 }

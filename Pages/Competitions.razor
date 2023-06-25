@@ -2,10 +2,12 @@
 @page "/Competition"
 @using System.Collections.ObjectModel
 @inject BrewCompDbContext DBContext
+@inject IDialogService DialogService
 
 <MudStack Spacing=2>
     <div><h3>Competitions</h3></div>
-    <MudDataGrid Items=@_data Filterable=true ReadOnly=@_readOnly EditMode=@DataGridEditMode.Form RowsPerPage="25" Striped=true Bordered=true>
+    <MudDataGrid Items=@_data Filterable=true ReadOnly=@_readOnly EditMode=@DataGridEditMode.Form RowsPerPage="25"
+        Striped=true Bordered=true HorizontalScrollbar=true Dense=true>
         <Columns>
             <HierarchyColumn T=Competition/>
             <PropertyColumn Property="c=>c.Name" Title="Competition Name"/>
@@ -24,13 +26,18 @@
             <AuthorizeView Roles="siteadmin, coordinator">
                 <TemplateColumn Filterable=false Sortable=false>
                     <HeaderTemplate Context=headerCell>
-                        <MudButton StartIcon="@Icons.Material.Outlined.AddCircle" Color="Color.Info" Variant="Variant.Filled">Add</MudButton>
+                        <MudMenu StartIcon="@Icons.Material.Outlined.AddCircle" Size="Size.Small" Color="Color.Info" Variant="Variant.Filled" Label="Add">
+                            <MudMenuItem OnClick="ShowAddComp">Quick Add</MudMenuItem>
+                            <MudMenuItem>Detailed Add</MudMenuItem>
+                        </MudMenu>
                     </HeaderTemplate>
                     <CellTemplate Context=row>
                         @if(context.User.IsInRole("siteadmin") || context.User.HasClaim("CompCoordinator", row.Item.Id.ToString())) {
-                            <MudIconButton Icon="@Icons.Material.Outlined.DeleteForever" Color="Color.Error"
-                                OnClick="x=>RemoveComp(row.Item)"/>
-                            <MudIconButton Icon="@Icons.Material.Outlined.Edit" Color="Color.Surface"/>
+                            <MudStack Row>
+                                <MudIconButton Icon="@Icons.Material.Outlined.DeleteForever" Color="Color.Error"
+                                    OnClick="x=>RemoveComp(row.Item)"/>
+                                <MudIconButton Icon="@Icons.Material.Outlined.Edit" Color="Color.Surface"/>
+                            </MudStack>
                         }
                     </CellTemplate>
                 </TemplateColumn>
@@ -55,9 +62,10 @@
 </MudStack>
 
 
+
 @code {
     private bool _readOnly = false;
-    private AddCompModal? addCompModal = default!;
+    private bool _showDialog = false;
     private ObservableCollection<Competition>? _data;
 
     protected override Task OnInitializedAsync()
@@ -71,6 +79,20 @@
         _data?.Remove(comp);
         DBContext.Remove(comp);
         await DBContext.SaveChangesAsync();
+    }
+
+    private async Task ShowAddComp()
+    {
+        var dialog = await DialogService.ShowAsync<AddCompModal>();
+        var result = await dialog.Result;
+
+        if(!result.Canceled)
+        {
+            var comp = (Competition)result.Data;
+            _data?.Add(comp); // This should auto update our grid
+            await DBContext.Competitions.AddAsync(comp);
+            await DBContext.SaveChangesAsync();
+        }
     }
 
 }
