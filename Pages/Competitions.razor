@@ -1,10 +1,11 @@
 ﻿@page "/Competitions"
 @page "/Competition"
+@using System.Collections.ObjectModel
 @inject BrewCompDbContext DBContext
 
 <MudStack Spacing=2>
     <div><h3>Competitions</h3></div>
-    <MudDataGrid Items=@DBContext.Competitions Filterable=true ReadOnly=@_readOnly EditMode=@DataGridEditMode.Form RowsPerPage="25">
+    <MudDataGrid Items=@_data Filterable=true ReadOnly=@_readOnly EditMode=@DataGridEditMode.Form RowsPerPage="25" Striped=true Bordered=true>
         <Columns>
             <HierarchyColumn T=Competition/>
             <PropertyColumn Property="c=>c.Name" Title="Competition Name"/>
@@ -20,6 +21,20 @@
             </TemplateColumn>
             <PropertyColumn Property="c=>c.EntryCost" Format="C"/>
             <PropertyColumn Property="c=>c.CompetitionDates.StartDate" Format="yyyy-mm-dd" Title="Start Date"/>
+            <AuthorizeView Roles="siteadmin, coordinator">
+                <TemplateColumn Filterable=false Sortable=false>
+                    <HeaderTemplate Context=headerCell>
+                        <MudButton StartIcon="@Icons.Material.Outlined.AddCircle" Color="Color.Info" Variant="Variant.Filled">Add</MudButton>
+                    </HeaderTemplate>
+                    <CellTemplate Context=row>
+                        @if(context.User.IsInRole("siteadmin") || context.User.HasClaim("CompCoordinator", row.Item.Id.ToString())) {
+                            <MudIconButton Icon="@Icons.Material.Outlined.DeleteForever" Color="Color.Error"
+                                OnClick="x=>RemoveComp(row.Item)"/>
+                            <MudIconButton Icon="@Icons.Material.Outlined.Edit" Color="Color.Surface"/>
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
+            </AuthorizeView>
         </Columns>
         <ChildRowContent>
             <MudCard>
@@ -43,9 +58,17 @@
 @code {
     private bool _readOnly = false;
     private AddCompModal? addCompModal = default!;
+    private ObservableCollection<Competition>? _data;
+
+    protected override Task OnInitializedAsync()
+    {
+        _data = new ObservableCollection<Competition>(DBContext.Competitions.ToList());
+        return base.OnInitializedAsync();
+    }
 
     private async Task RemoveComp(Competition comp)
     {
+        _data?.Remove(comp);
         DBContext.Remove(comp);
         await DBContext.SaveChangesAsync();
     }
