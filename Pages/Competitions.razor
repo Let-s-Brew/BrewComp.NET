@@ -12,8 +12,7 @@
 <MudStack Spacing=2>
     <div><h3>Competitions</h3></div>
     <MudDataGrid Items=@_data Filterable=true FilterCaseSensitivity=DataGridFilterCaseSensitivity.CaseInsensitive
-        ReadOnly=@_readOnly EditMode=@DataGridEditMode.Form RowsPerPage="25"
-        Striped=true Bordered=true HorizontalScrollbar=true Breakpoint="Breakpoint.None">
+        RowsPerPage="25" Striped=true Bordered=true HorizontalScrollbar=true Breakpoint="Breakpoint.None">
         <Columns>
             <HierarchyColumn T=Competition/>
             <TemplateColumn Title="Competition Name">
@@ -21,11 +20,6 @@
                     <MudLink Href="@($"/Competition/{context.Item.Id}")">@context.Item.Name</MudLink>
                 </CellTemplate>
             </TemplateColumn>
-<!--            <TemplateColumn Title="Entries" >
-                <CellTemplate>
-                    @(context.Item.Entries.Count == 0 ? "None" : context.Item.Entries.Count)
-                </CellTemplate>
-            </TemplateColumn> -->
             <PropertyColumn Property="c=>c.Entries.Count" Title="Entry Count">
                 <CellTemplate>
                     @(context.Item.Entries.Count == 0 ? "None" : context.Item.Entries.Count)
@@ -45,9 +39,10 @@
             <AuthorizeView Roles="siteadmin, coordinator">
                 <TemplateColumn Filterable=false Sortable=false>
                     <HeaderTemplate Context=headerCell>
-                        <MudMenu StartIcon="@Icons.Material.Outlined.AddCircle" Size="Size.Small" Color="Color.Info" Variant="Variant.Filled" Label="Add">
+                        <MudMenu StartIcon="@Icons.Material.Outlined.AddCircle" Size="Size.Small" Color="Color.Info" 
+                            Variant="Variant.Filled" Label="Add" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopCenter">
                             <MudMenuItem OnClick="ShowAddComp">Quick Add</MudMenuItem>
-                            <MudMenuItem >Detailed Add</MudMenuItem>
+                            <MudMenuItem Href="/Competition/Add">Detailed Add</MudMenuItem>
                         </MudMenu>
                     </HeaderTemplate>
                     <CellTemplate Context=row>
@@ -84,8 +79,6 @@
 
 
 @code {
-    private bool _readOnly = false;
-    private bool _showDialog = false;
     private ObservableCollection<Competition>? _data;
 
     [CascadingParameter]
