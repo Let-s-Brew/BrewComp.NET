@@ -1,0 +1,24 @@
+﻿@page "/Competition/{Id}/Edit"
+
+<AuthorizeView Roles="siteadmin, coordinator">
+    <Authorized>
+        @if(!_loaded)
+        {
+            <p> Loading...</p>
+        } else if (_comp is null) {
+            <p>Unable to locate Competition with Id: @Id</p>
+        } else if (!_authed)
+        {
+            <p>You are not authorized to modify thid competition.</p>
+        } else
+        {
+            <p>MudEdit Form Goes Here</p>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <p>You are not authorized to modify this competition.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+

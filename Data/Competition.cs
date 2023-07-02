@@ -11,7 +11,7 @@ public class Competition
     public string Name { get; set; } = string.Empty;
     public decimal EntryCost { get; set; } = 0;
     public int? EntryLimit { get; set; } = null!;
-    public DateRange CompetitionDates { get; set; }
+    public DateRange? CompetitionDates { get; set; } = null!;
     public DateRange? DropOffDates { get; set; } = null!;
     public DateRange? ShippingDates { get; set; } = null!;
     public DateRange? RegistrationDates { get; set; } = null!;

@@ -1,5 +1,4 @@
 ﻿@using BrewCode.AddressTools.Models
-@using BlazorBootstrap
 @using System.ComponentModel.DataAnnotations
 
 @namespace BrewComp.Shared
@@ -7,149 +6,66 @@
 @inject BrewCompDbContext dbContext
 @inject ILogger<Program> _logger
 
-<Modal @ref="modal" Title="Add New Competition" UseStaticBackdrop="true" IsScrollable="true" IsVerticallyCentered="true"
-    Fullscreen="ModalFullscreen.LargeDown" Size="ModalSize.Large" OnHiding="OnHide">
-    <BodyTemplate>
-        <EditForm EditContext="@editContext" OnValidSubmit="@HandleSubmit" id="addCompForm">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-            <div class="form-group form-control row mb-3">
-                <label class="col-form-label">Competition Name: <span class="text-danger">*</span></label>
-                <InputText @bind-Value="formModel.CompName" />
-            </div>
-            <div class="form-control row mb-3">
-                <DateRangePicker Title="Competition Dates" Context="@editContext" @bind-Value=formModel.CompDates Required="true" />
-            </div>
-            <div class="form-control row mb-3">
-                <DateRangePicker Title="Registration Dates" Context="@editContext" @bind-Value=formModel.RegDates Required="true" />
-            </div>
-            <div class="form-control row mb-3">
-                <DateRangePicker Title="Entry Registration/Modification Dates" Context="@editContext" @bind-Value=formModel.EntryDates Required="true" />
-            </div>
-            <div class="form-control row mb-3">
-                <DateRangePicker Title="Shipping Window Dates" Context="@editContext" @bind-Value=formModel.ShipDates Required="true" />
-            </div>
-            <div class="form-control row mb-3">
-                <DateRangePicker Title="Drop-Off Dates" Context="@editContext" @bind-Value=formModel.DropOffDates @ref=_picker Required="true" />
-                <label class="form-label">
-                    <InputCheckbox @oninput="UpdateShipDropWindow" ValueExpression="()=>formModel.ShipDropSame" /> Use Same Dates as Shipping Window
-                </label>
-            </div>
-            <div class="mb-3 row form-control">
-                <div class="form-group row gx-3 row-cols-2">
-                    <div class="col">
-                        <label class="form-label">Entry Fee</label>
-                        <CurrencyInput TValue="decimal?" @bind-Value=formModel.EntryFee Placeholder="Entry Fee Amount" MaximumFractionDigits="2"
-                                       Locale=@System.Globalization.CultureInfo.CurrentCulture.Name />
-                        <span class="form-text">Leave blank or use 0 to have no fee.</span>
-                    </div>
-                    <div class="col">
-                        <label class="form-label">Entry Limit</label>
-                        <NumberInput TValue="int?" Placeholder="Entry Limit Amount" @bind-Value=formModel.EntryCap />
-                        <span class="form-text">Leave blank or use 0 to have no limit.</span>
-                    </div>
-                </div>
-            </div>
-            <div class="form-control form-group row mb-3">
-                <label class="form-label-row">Shipping/Drop-off Addresses</label>
-                <AddressListView CanEdit=true Data="@formModel.DropOffLocations" />
-
-            </div>
-            <div class="form-control form-group row mb-3">
-                <label class="col-form-label"><InputCheckbox @bind-Value=formModel.BJCPSanction /> BJCP Sanctioned?</label>
-                <label class="col-form-label">
-                    BJCP Competition Id
-                    @if (formModel.BJCPSanction)
-                    {
-                        <span class="text-danger"> *</span>
-                    }
-                </label>
-                <InputText @bind-Value=formModel.BJCPId required="@formModel.BJCPSanction" DisplayName="BJCP Competition ID"
-                           disabled="@(!formModel.BJCPSanction)" />
-            </div>
-        </EditForm>
-    </BodyTemplate>
-    <FooterTemplate>
-        <Button Color="ButtonColor.Secondary" @onclick="CloseAsync">Cancel</Button>
-        <Button Color="ButtonColor.Primary" Type="ButtonType.Submit" form="addCompForm">Save</Button>
-       
-    </FooterTemplate>
-</Modal>
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Quick Add</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref=_form @bind-IsValid=_isValid>
+            <MudTextField For="()=>_model.CompName" @bind-Value=_model.CompName/>
+            <MudNumericField For="()=>_model.EntryFee" @bind-Value=_model.EntryFee Variant="Variant.Outlined" Min="0.0M" Format="C"/>
+            <MudNumericField For="()=>_model.EntryCap" @bind-Value=_model.EntryCap Variant="Variant.Outlined" Min="0"/>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Surface" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled=!_isValid>Add</MudButton>
+    </DialogActions>
+</MudDialog>
 
 @code {
-    private Modal modal = default!;
-    protected AddCompForm formModel = new();
-    private EditContext editContext = null!;
-    private DateRangePicker _picker = null!;
+    [CascadingParameter]
+    MudDialogInstance Dialog { get; set; } = default!;
 
-    [Parameter]
-    public EventCallback OnHide { get; set; }
+    private QuickAddModel _model = new();
+    private MudForm? _form = null!;
+    private bool _isValid;
 
-    protected override void OnInitialized()
+    private void Cancel()
     {
-        editContext = new(formModel);
+        _model = new();
+        Dialog.Cancel();
     }
 
-    private async Task HandleSubmit()
+    private async Task Submit()
     {
-        Competition newComp = new Competition()
-            {
-                Name = formModel.CompName,
-                CompetitionDates = formModel.CompDates,
-                RegistrationDates = formModel.RegDates,
-                EntryRegistrationDates = formModel.EntryDates,
-                ShippingDates = formModel.ShipDates,
-                DropOffDates = formModel.ShipDropSame ? formModel.ShipDates : formModel.DropOffDates,
-                EntryCost = formModel.EntryFee ?? 0,
-                EntryLimit = formModel.EntryCap ?? 0,
-                DropOffAddresses = formModel.DropOffLocations
-            };
-        await dbContext.Competitions.AddAsync(newComp);
-        await dbContext.SaveChangesAsync(); 
-        await CloseAsync();
+        if (_form is null) return; // Should never be true
+
+        await _form.Validate();
+        if (!_form.IsValid) return; // Should not close form?
+
+        var newComp = new Competition()
+        {
+            Name = _model.CompName,
+            EntryCost = _model.EntryFee.HasValue ? _model.EntryFee.Value : 0.0M,
+            EntryLimit = _model.EntryCap.HasValue ? _model.EntryCap.Value : 0
+        };
+        Dialog.Close(DialogResult.Ok(newComp));
     }
 
-    public async Task ShowAsync()
+    protected class QuickAddModel
     {
-        await modal.ShowAsync();
-    }
-
-    public async Task CloseAsync()
-    {
-        await modal.HideAsync();
-    }
-
-    private void UpdateShipDropWindow(ChangeEventArgs args)
-    {
-        _logger.LogInformation($"{args} / {args.Value}");
-        _picker.Enabled = !((bool)args.Value);
-    }
-
-    public class AddCompForm
-    {
-        internal const string CompNameRegEx = @"^[\w \-&!@$#,.]{3,254}$";
-        [Required(ErrorMessage = "Competition name is required")]
-        //[StringLength(255, MinimumLength = 3, ErrorMessage = "Competition name must be between 3 and 255 Characters")]
-        [RegularExpression(pattern: CompNameRegEx, ErrorMessage="Competition name must be between 3 and 254 Characters, containing only Letters, Numbers, Spaces, or these characters: !@#$,.-_")]
+        [Required]
+        [Label("Competition Name")]
+        [RegularExpression(pattern: @"^[\w \-&!@$#,.]{3,254}$", 
+            ErrorMessage = "Competition name must be between 3 and 254 Characters, containing only Letters, Numbers, Spaces, or these characters: !@#$,.-_")]
         public string CompName { get; set; } = null!;
 
-        [Required]
-        public DateRange CompDates { get; set; }
-        [Required]
-        public DateRange RegDates { get; set; }
-        [Required]
-        public DateRange EntryDates { get; set; }
-        [Required]
-        public DateRange ShipDates { get; set; }
-        public DateRange DropOffDates { get; set; }
+        [Label("Competition Entry Fee")]
+        public decimal? EntryFee { get; set; } 
 
-        public List<CivicAddress> DropOffLocations { get; set; } = new();
+        [Label("Competition Entries Limit")]
+        public int? EntryCap { get; set; }
 
-        public bool ShipDropSame { get; set; } = false;
-        public bool BJCPSanction { get; set; } = false;
-        public string? BJCPId { get; set; } = null!;
-
-        public decimal? EntryFee { get; set; } = null!;
-        public int? EntryCap { get; set; } = null!;
     }
 }

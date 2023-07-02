@@ -1,92 +1,132 @@
 ﻿@page "/Competitions"
 @page "/Competition"
+@using System.Collections.ObjectModel
+@using Microsoft.AspNetCore.Identity
+@using BrewComp.Identity
+
 @inject BrewCompDbContext DBContext
-@using BlazorBootstrap
+@inject IDialogService DialogService
+@inject ILogger<Competitions> Logger
+@inject UserManager<BrewCompUser> UserManager
 
-<AddCompModal @ref="addCompModal" OnHide="UpdateGrid"/>
-<div class="vstack gap-lg-2 gap-1">
+<MudStack Spacing=2>
     <div><h3>Competitions</h3></div>
+    <MudDataGrid Items=@_data Filterable=true FilterCaseSensitivity=DataGridFilterCaseSensitivity.CaseInsensitive
+        RowsPerPage="25" Striped=true Bordered=true HorizontalScrollbar=true Breakpoint="Breakpoint.None">
+        <Columns>
+            <HierarchyColumn T=Competition/>
+            <TemplateColumn Title="Competition Name">
+                <CellTemplate>
+                    <MudLink Href="@($"/Competition/{context.Item.Id}")">@context.Item.Name</MudLink>
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="c=>c.Entries.Count" Title="Entry Count">
+                <CellTemplate>
+                    @(context.Item.Entries.Count == 0 ? "None" : context.Item.Entries.Count)
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="c=> c.EntryLimit" Title="Entry Limit">
+                <CellTemplate>
+                    @(context.Item.EntryLimit == null || context.Item.EntryLimit <= 0 ? "No Entry Limit" : context.Item.EntryLimit)
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="c=>c.EntryCost" Format="C"/>
+            <TemplateColumn Title="Start Date">
+                <CellTemplate>
+                    @(context.Item.CompetitionDates.HasValue ? context.Item.CompetitionDates.Value.StartDate.ToString("yyyy-mm-dd") : "No Start Date Set")
+                </CellTemplate>
+            </TemplateColumn>
+            <AuthorizeView Roles="siteadmin, coordinator">
+                <TemplateColumn Filterable=false Sortable=false>
+                    <HeaderTemplate Context=headerCell>
+                        <MudMenu StartIcon="@Icons.Material.Outlined.AddCircle" Size="Size.Small" Color="Color.Info" 
+                            Variant="Variant.Filled" Label="Add" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopCenter">
+                            <MudMenuItem OnClick="ShowAddComp">Quick Add</MudMenuItem>
+                            <MudMenuItem Href="/Competition/Add">Detailed Add</MudMenuItem>
+                        </MudMenu>
+                    </HeaderTemplate>
+                    <CellTemplate Context=row>
+                        @if(context.User.IsInRole("siteadmin") || context.User.HasClaim("Coordinator", row.Item.Id.ToString())) {
+                            <MudStack Row>
+                                <MudIconButton Icon="@Icons.Material.Outlined.DeleteForever" Color="Color.Error"
+                                    OnClick="x=>RemoveComp(row.Item)"/>
+                                <MudIconButton Icon="@Icons.Material.Outlined.Edit" Color="Color.Surface"
+                                           Href=@($"/Competition/{row.Item.Id}/Edit") />
+                            </MudStack>
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
+            </AuthorizeView>
+        </Columns>
+        <ChildRowContent>
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">@context.Item.Name</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <div>Extra Comp Details will appear here</div>
+                </MudCardContent>
+            </MudCard>
+        </ChildRowContent>
+        <PagerContent>
+            <MudDataGridPager T="Competition"/>
+        </PagerContent>
+    </MudDataGrid>
+</MudStack>
 
-    <Grid @ref=grid TItem="Competition" class="table table-hover table-bordered table-striped" DataProvider="CompProvider"
-            AllowFiltering="true" AllowPaging="true" PageSize="25" AllowSorting="true" Responsive="true">
-    
-            <GridColumn TItem="Competition" HeaderText="Competition Name" PropertyName="Name" 
-                SortString="Name" SortKeySelector="comp => comp.Id" HeaderTextAlignment="Alignment.Center">
-                <a href="Competition/@context.Id">
-                @context.Name
-                </a>
-            </GridColumn>
-            <GridColumn TItem="Competition" HeaderText="Competition Dates" PropertyName="CompetitionDates" HeaderTextAlignment="Alignment.Center"
-                Sortable=true SortString="CompetitionDates" SortKeySelector="comp=>comp.CompetitionDates.StartDate">
-            <BlazorTime.ToLocal DateTime=@context.CompetitionDates.StartDate Format="yyyy-mm-dd hh:MM TT"/>
-            @if(context.CompetitionDates.EndDate.HasValue)
-            {
-                @(" - ") 
-                <BlazorTime.ToLocal DateTime=@context.CompetitionDates.EndDate.Value Format="yyyy-mm-dd hh:MM TT" />
-            }
-            </GridColumn>
-            <GridColumn TItem="Competition" HeaderText="Entries" HeaderTextAlignment="Alignment.Center" PropertyName="Entries.Count" Sortable=true
-            SortString="Entries" SortKeySelector="comp=>comp.Entries.Count">
-                @context.Entries.Count
-            </GridColumn>
-            <GridColumn TItem="Competition" HeaderText="Entry Cost" HeaderTextAlignment="Alignment.Center" PropertyName="EntryCost" Sortable=true
-                SortString="EntryCost" SortKeySelector="comp => comp.EntryCost">
-                @if(context.EntryCost == 0)
-            {
-                <p>Free!</p>
-            } else
-            {
-                // This will use the RegionInfo of the SERVER to display currency value. (Do we want to convert to local user region?)
-                @context.EntryCost.ToString("C");
-            }
-        </GridColumn>
-        <AuthorizeView Roles="siteadmin, coordinator">
-
-            <GridColumn TItem="Competition" Filterable=false Sortable=false>
-                <HeaderContent>
-                        <Button Color="ButtonColor.Primary" @onclick="ShowAddCompModal"><Icon Name="IconName.PlusCircle" /> Add</Button>
-                </HeaderContent>
-                <ChildContent Context="row">
-                    @if(context.User.IsInRole("siteadmin") || context.User.HasClaim("CompCoordinator", row.Id.ToString()))
-                    {
-                        <div class="px-2 justify-content-end">
-                            <Button Color="ButtonColor.Secondary" Size="Size.Small"><Icon Name=IconName.PencilFill/></Button> 
-                            <Button Color="ButtonColor.Danger" Size="Size.Small" @onclick="()=>RemoveComp(row)"><Icon Name="IconName.TrashFill" /></Button>
-                        </div>
-                    }
-                </ChildContent>
-            </GridColumn>
-        </AuthorizeView>
-    </Grid>
-</div>
 
 
 @code {
-    private AddCompModal? addCompModal = default!;
-    private Grid<Competition>? grid = default!;
+    private ObservableCollection<Competition>? _data;
 
-    private async Task<GridDataProviderResult<Competition>> CompProvider (GridDataProviderRequest<Competition> request)
-    {
-        return await Task.FromResult(request.ApplyTo(DBContext.Competitions));
-    }
+    [CascadingParameter]
+    private Task<AuthenticationState>? authState { get; set; }
 
-    private async Task ShowAddCompModal()
+    protected override Task OnInitializedAsync()
     {
-        if (addCompModal is null) return;
-        await addCompModal.ShowAsync();
-    }
-
-    private async Task UpdateGrid()
-    {
-        if (grid is not null)
-            await grid.RefreshDataAsync();
+        _data = new ObservableCollection<Competition>(DBContext.Competitions.ToList());
+        return base.OnInitializedAsync();
     }
 
     private async Task RemoveComp(Competition comp)
     {
+        bool? result = await DialogService.ShowMessageBox(
+            "Confirm Delete Competition", "All Competition data will be permentely deleted. This cannot be undone.",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == null || !result.Value) return;
+
+        _data?.Remove(comp);
         DBContext.Remove(comp);
         await DBContext.SaveChangesAsync();
-        await UpdateGrid();
+    }
+
+    private async Task ShowAddComp()
+    {
+        var dialog = await DialogService.ShowAsync<AddCompModal>();
+        var result = await dialog.Result;
+
+        if(!result.Canceled)
+        {
+            var comp = (Competition)result.Data;
+            _data?.Add(comp); // This should auto update our grid
+            await DBContext.Competitions.AddAsync(comp);
+            if(authState is not null)
+            {
+                var state = await authState;
+                var user = state?.User;
+
+                if(user?.Identity is not null && user.Identity.IsAuthenticated)
+                {
+                    var u = await this.UserManager.GetUserAsync(user);
+                    await this.UserManager.AddClaimAsync(u, new System.Security.Claims.Claim("Coordinator", comp.Id.ToString()));
+                }
+            }
+            await DBContext.SaveChangesAsync();
+
+        }
     }
 
 }

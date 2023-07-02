@@ -1,73 +1,17 @@
 ﻿@using BrewCode.AddressTools.Models
-@using BlazorBootstrap
 @using System.ComponentModel.DataAnnotations
 @using System.Text.RegularExpressions
 
-<Grid TItem="CivicAddress" class="table table-hover table-bordered table-striped me-3" DataProvider="ListDataProvider"
-    AllowPaging=true PageSize="5" EmptyText="No Addresses have been listed." Responsive=true @ref=grid>
-    <GridColumn TItem="CivicAddress" HeaderText="Address" PropertyName="Address">
-        @(string.Join("<br/>", context.Address))
-    </GridColumn>
-    <GridColumn TItem="CivicAddress" HeaderText="City" PropertyName="City">
-        @context.City
-    </GridColumn>
-    <GridColumn TItem="CivicAddress" HeaderText="State" PropertyName="State">
-        @context.State
-    </GridColumn>
-    <GridColumn TItem="CivicAddress" HeaderText="Zip" PropertyName="Zip">
-        @context.PostalCode
-    </GridColumn>
-    @if(CanEdit)
-    {
-        <GridColumn TItem="CivicAddress" HeaderTextAlignment="Alignment.End">
-            <HeaderContent>
-                    <Button Color="ButtonColor.Primary" @onclick="ShowAddAddress" Size="Size.Small"><Icon Name="IconName.PlusCircle" /> New</Button>
-            </HeaderContent>
-            <ChildContent>
-                <Button Color="ButtonColor.Danger" @onclick="()=> {Data.Remove(context); grid.RefreshDataAsync();}"><Icon Name="IconName.Trash2Fill"/></Button>
-            </ChildContent>
-        </GridColumn>
-    }
-</Grid>
+<MudDataGrid Items="@Data" ReadOnly=@(!CanEdit) EditMode="DataGridEditMode.Form">
+    <Columns>
+        <PropertyColumn Property="a=>a.Address" />
+        <PropertyColumn Property="a=>a.City" />
+        <PropertyColumn Property="a=>a.State"/>
+        <PropertyColumn Property="a=>a.PostalCode"/>
+    </Columns>
 
-@if(CanEdit)
-{
-    <Collapse @ref="collapse" Class="py-2 mb-1">
-        <EditForm Model="form" name="AddAddress" id="AddAddress" OnValidSubmit="AddAddress">
-            <DataAnnotationsValidator/>
-            <ValidationSummary/>
-            <div class="form-group form-control mx-2">
-                <div class="row mb-3 gx-2">
-                    <label class="form-label">Address</label>
-                    <InputTextArea rows="3" class="form-control" @bind-Value="form.Address" />
-                </div>
-                <div class="row row-cols-3 gx-2 mb-2">
-                    <div class="col">
-                        <label class="form-label">City</label>
-                        <InputText class="form-control" @bind-Value="form.City"/>
-                    </div>
-                    <div class="col">
-                        <label class="form-label">State</label>
-                        <AutoComplete @bind-Value=stateHolder TItem="State" DataProvider="StateProvider"
-                            PropertyName="LongName" OnChanged="(s) => StateUpdater(s)" />
-                    </div>
-                    <div class="col">
-                        <label class="form-label">Zip/Postal Code</label>
-                        <InputText class="form-control" @bind-Value="form.PostalCode" />
-                    </div>
-                </div>
-                <div class="row justify-content-end mx-2 ">
-                    <div class="col-1 px-5">
-                        <Button Size=Size.Small Color="ButtonColor.Secondary" @onclick="CloseAddAddress">Cancel</Button>
-                    </div>
-                    <div class="col-1 px-3">
-                        <Button Size=Size.Small Type="ButtonType.Submit" Color="ButtonColor.Primary" form="AddAddress">Add</Button>
-                    </div>
-                </div>
-            </div>
-        </EditForm>
-    </Collapse>
-}
+</MudDataGrid>
+
 @code {
     [Parameter]
     public List<CivicAddress> Data { get; set; } = default!;
@@ -75,74 +19,5 @@
     [Parameter]
     public bool CanEdit { get; set; } = false;
 
-    private Collapse? collapse = default!;
-    private AddAddressForm form = new();
-    private string stateHolder = default!;
-    private Grid<CivicAddress> grid = null!;
-
-    private async Task<GridDataProviderResult<CivicAddress>> ListDataProvider (GridDataProviderRequest<CivicAddress> request)
-    {
-        return await Task.FromResult(request.ApplyTo(Data));
-    }
-
-    private async Task ShowAddAddress()
-    {
-        if(collapse is not null)
-            await collapse.ShowAsync();
-    }
-
-    private async Task CloseAddAddress()
-    {
-        if (collapse is not null)
-            await collapse.HideAsync();
-    }
-
-    private async Task AddAddress()
-    {
-        Regex rx = new Regex(@"^(\d{5})(-(\d{4}))?$");
-        var match = rx.Match(form.PostalCode);
-
-        if(!match.Success)
-        {
-            throw new ArgumentException("Unable to parse Postal Code");
-        }
-
-        Data.Add(new CivicAddress(
-            form.Address.Split(Environment.NewLine),
-            form.City,
-            form.State,
-            int.Parse(match.Captures[0].Value),
-            match.Captures.Count == 2 ? int.Parse(match.Captures[1].Value) : 0
-        ));
-
-        if(collapse is not null)
-            await collapse.HideAsync();
-
-        await grid.RefreshDataAsync();
-        form = new(); // Reset form data.
-    }
-
-    private async Task<AutoCompleteDataProviderResult<State>> StateProvider(AutoCompleteDataProviderRequest<State> req)
-    {
-        return await Task.FromResult(req.ApplyTo(States.StateList));
-    }
-
-    private void StateUpdater(State? s)
-    {
-        if (s is not null)
-            form.State = s.Value;
-    }
-
-    private class AddAddressForm
-    {
-        [Required]
-        public string Address { get; set; } = null!;
-        [Required]
-        public string City { get; set; } = null!;
-        [Required]
-        public State State { get; set; } = default!;
-        [Required]
-        [RegularExpression(@"^\d{5}(-\d{4})?$", ErrorMessage = "Zip should be in format ##### or #####-####")]
-        public string PostalCode { get; set; } = null!;
-    }
+    
 }

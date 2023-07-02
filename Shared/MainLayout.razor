@@ -2,15 +2,44 @@
 
 <PageTitle>BrewComp.NET</PageTitle>
 
-<div class="bb-page">
-    <NavMenu />
-    <main>
-        <div class="bb-top-row px-4 auth">
-            <LoginDisplay />
-        </div>
+<MudThemeProvider/>
+<MudDialogProvider/>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Size="Size.Large" Edge="Edge.Start" OnClick="@((e) => ToggleNavMenu())" />
+        <MudText Typo="Typo.h5" Class="ml-3">BrewComp.Net</MudText>
+        <MudSpacer />
+        <MudMenu Icon="@Icons.Material.Rounded.AccountCircle" AnchorOrigin=Origin.BottomRight TransformOrigin=Origin.TopRight
+                 Edge="Edge.End" Color="Color.Inherit" Size="Size.Large">
+            <AuthorizeView>
+                <Authorized>
+                    <MudText Class="pa-2" Typo=Typo.body2>Hello @context.User?.Identity?.Name</MudText>
+                    <MudDivider/>
+                    <MudMenuItem Href="Identity/Account/Manage" Target="body">Profile</MudMenuItem>
+                    <MudMenuItem Href="Identity/Account/LogOut" Target="body">Logout</MudMenuItem>
+                </Authorized>
+                <NotAuthorized>
+                    <MudMenuItem Href="Identity/Account/Register" Target="body">Register</MudMenuItem>
+                    <MudMenuItem Href="Identity/Account/Login" Target="body">Login</MudMenuItem>
+                </NotAuthorized>
+            </AuthorizeView>
+        </MudMenu>
+
+    </MudAppBar>
+    <MudDrawer @bind-Open="_showNavMenu" ClipMode="DrawerClipMode.Always" Elevation="2">
+        <NavMenu/>
+    </MudDrawer>
+    <MudMainContent Class="mt-md-5 mt-3 px-4">
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    bool _showNavMenu = true;
+
+    void ToggleNavMenu()
+    {
+        _showNavMenu = !_showNavMenu;
+    }
+}

@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Blazor.Bootstrap" Version="1.7.3" />
     <PackageReference Include="BlazorTime" Version="1.0.3" />
     <PackageReference Include="BrewCode.AddressTools" Version="1.0.4" />
     <PackageReference Include="BrewCode.BrewGuide" Version="1.0.2" />
@@ -24,6 +23,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.13" />
+    <PackageReference Include="MudBlazor" Version="6.4.1" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.8" />
   </ItemGroup>
 

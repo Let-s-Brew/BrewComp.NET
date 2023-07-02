@@ -1,24 +1,4 @@
-﻿@using BlazorBootstrap
-
-<Sidebar @ref="sidebar"
-    Title="BrewComp.Net"
-    DataProvider="SidebarDataProvider"
-    ImageSrc="assets/site-logo.png"/>
-
-@code {
-    private Sidebar sidebar = default!;
-
-    private void ToggleNavMenu()
-    {
-        sidebar.ToggleSidebar();
-    }
-
-    private async Task<SidebarDataProviderResult> SidebarDataProvider(SidebarDataProviderRequest request)
-    {
-        return await Task.FromResult(request.ApplyTo(new List<NavItem>
-        {
-            new NavItem {Id = "home", Href = "/", IconName = IconName.HouseFill, Text="Home", Match = NavLinkMatch.All},
-            new NavItem {Id = "competition", Href = "/Competition", IconName = IconName.TrophyFill, Text="Competitions"}
-        }));
-    }
-}
+﻿<MudNavMenu>
+    <MudNavLink Icon="@Icons.Material.Filled.Home" Href="/" Match=NavLinkMatch.All>Home</MudNavLink>
+    <MudNavLink Icon="@Icons.Material.Filled.SportsBar" Href="/Competitions">Competitions</MudNavLink>
+</MudNavMenu>

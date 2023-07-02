@@ -1,0 +1,15 @@
+﻿@page "/Competition/Add"
+@page "/competitions/Add"
+
+<PageTitle>New Competition</PageTitle>
+
+<h3>Add New Competition</h3>
+<AuthorizeView Roles="siteadmin, coordinator">
+    <Authorized>
+
+    </Authorized>
+    <NotAuthorized>
+        <p>You do not have authorization to add new competitions.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
