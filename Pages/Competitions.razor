@@ -92,6 +92,12 @@
 
     private async Task RemoveComp(Competition comp)
     {
+        bool? result = await DialogService.ShowMessageBox(
+            "Confirm Delete Competition", "All Competition data will be permentely deleted. This cannot be undone.",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == null || !result.Value) return;
+
         _data?.Remove(comp);
         DBContext.Remove(comp);
         await DBContext.SaveChangesAsync();
